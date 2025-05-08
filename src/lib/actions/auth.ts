@@ -101,7 +101,7 @@ export async function getUser() {
     if (!sessionId) return null;
 
     try {
-        const user = await sql`SELECT * FROM AppUser
+        const user = await sql`SELECT id, username, email FROM AppUser
             WHERE id = (SELECT userId FROM Session WHERE id = ${sessionId})`;
         return user[0];
     } catch (e) {
