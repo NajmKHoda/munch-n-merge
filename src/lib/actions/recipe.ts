@@ -107,25 +107,6 @@ export async function deleteRecipe(id: number) {
     }
 }
 
-/**
- * Retrieves all recipes from the database.
- * @returns An object with either:
- *          { recipes: Recipe[] } containing all recipes, or
- *          { error: 'server-error' } if an error occurs.
- */
-export async function getAllRecipes(): Errorable<{ recipes: Recipe[] }> {
-    try {
-        const recipes = await sql`
-            SELECT r.*, u.username as authorName 
-            FROM Recipe r 
-            LEFT JOIN AppUser u ON r.authorId = u.id 
-            ORDER BY r.id DESC`;
-        return { recipes: recipes as (Recipe & { authorName: string })[] };
-    } catch (e) {
-        return { error: 'server-error' };
-    }
-}
-
 type Errorable<T> = Promise<Partial<T> & { error?: string }>;
 
 interface Recipe {
