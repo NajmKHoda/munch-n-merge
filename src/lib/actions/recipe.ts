@@ -7,7 +7,7 @@ import { getUser } from './auth';
  * Creates a new recipe in the database.
  * @param name - The name of the recipe.
  * @param description - An optional description of the recipe.
- * @param ingredients - An optional record of ingredients and their quantities.
+ * @param ingredients - An optional array of ingredients.
  * @param instructions - Optional instructions for preparing the recipe.
  * @returns An object with either:
  *          { id: number } containing the new recipe ID if successful, or
@@ -16,7 +16,7 @@ import { getUser } from './auth';
 export async function createRecipe(
     name: string,
     description?: string,
-    ingredients?: Record<string, string>,
+    ingredients?: string[],
     instructions?: string
 ): Errorable<{ id: number }> {
     try {
@@ -24,7 +24,7 @@ export async function createRecipe(
         if (!user) return { error: 'not-logged-in' };
 
         const recipe = await sql`INSERT INTO Recipe (name, authorId, description, ingredients, instructions)
-            VALUES (${name}, ${user.id}, ${description || ''}, ${ingredients || {}}, ${instructions || ''})
+            VALUES (${name}, ${user.id}, ${description || ''}, ${ingredients || []}, ${instructions || ''})
             RETURNING id`;
         return { id: recipe[0].id };
     } catch (e) {
@@ -63,7 +63,7 @@ export async function updateRecipe(
     id: number,
     name?: string,
     description?: string,
-    ingredients?: Record<string, string>,
+    ingredients?: string[],
     instructions?: string
 ) {
     try {
@@ -114,6 +114,6 @@ interface Recipe {
     authorId: number | null;
     name: string;
     description: string;
-    ingredients: Record<string, string>;
+    ingredients: string[];
     instructions: string;
 }
