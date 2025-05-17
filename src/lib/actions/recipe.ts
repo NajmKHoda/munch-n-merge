@@ -1,6 +1,7 @@
 "use server";
 
 import { sql } from '../sql';
+import { generateMergedRecipe } from '../genai';
 import { getUser } from './auth';
 
 /**
@@ -107,9 +108,68 @@ export async function deleteRecipe(id: number) {
     }
 }
 
+/**
+ * Merges multiple recipes into a single new recipe using AI generation.
+ * @param ids - An array of recipe IDs to merge. Must include at least two IDs.
+ * @param temperature - An optional temperature value for AI creativity (must be between 0 and 2, inclusive; higher values result in more creative outputs).
+ * @returns An object with either:
+ *          { id: number } containing the new merged recipe ID if successful, or
+ *          { error: 'not-enough-recipes' | 'not-logged-in' | 'recipe-not-found' | 'generation-error' | 'invalid-temperature' | 'server-error' } if an error occurs.
+ * 
+ * Errors:
+ * - 'not-enough-recipes': Fewer than two recipe IDs were provided.
+ * - 'not-logged-in': The user is not logged in.
+ * - 'recipe-not-found': One or more recipes were not found or do not belong to the user.
+ * - 'generation-error': The AI failed to generate a merged recipe.
+ * - 'invalid-temperature': The provided temperature value is outside the valid range (0 to 2).
+ * - 'server-error': A server-side error occurred.
+ */
+export async function mergeRecipes(ids: number[], temperature?: number): Errorable<{ id: number }> {
+    if (ids.length < 2) return { error: 'not-enough-recipes' };
+    if (temperature !== undefined && (temperature < 0 || temperature > 2)) {
+        return { error: 'invalid-temperature' };
+    }
+
+    try {
+        const user = await getUser();
+        if (!user) return { error: 'not-logged-in' };
+
+        const recipes = (await sql`
+            SELECT * FROM Recipe
+            WHERE id IN (${ids.join(',')}) AND authorId = ${user.id}
+        `) as Recipe[];
+        if (recipes.length === 0) return { error: 'recipe-not-found' };
+
+        const mergedRecipe = await generateMergedRecipe(recipes, temperature);
+        if (mergedRecipe === null) return { error: 'generation-error' };
+
+        const [{ id: mergedRecipeId }] = await sql`
+            WITH MergedRecipe AS (
+                INSERT INTO Recipe (name, authorId, description, ingredients, instructions)
+                VALUES (
+                    ${mergedRecipe.name},
+                    ${user.id},
+                    ${mergedRecipe.description},
+                    ${JSON.stringify(mergedRecipe.ingredients)},
+                    ${mergedRecipe.instructions}
+                )
+                RETURNING id
+            )
+            INSERT INTO RecipeLink (parentId, childId)
+            SELECT parentId, (SELECT id FROM MergedRecipe)
+            FROM UNNEST(${ids}::int[]) AS parentId
+            RETURNING (SELECT id FROM MergedRecipe);
+        `;
+
+        return { id: mergedRecipeId };
+    } catch (e) {
+        return { error: 'server-error' };
+    }
+}
+
 type Errorable<T> = Promise<Partial<T> & { error?: string }>;
 
-interface Recipe {
+export interface Recipe {
     id: number;
     authorId: number | null;
     name: string;
