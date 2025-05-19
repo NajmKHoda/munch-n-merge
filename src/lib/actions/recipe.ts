@@ -8,7 +8,7 @@ import { getUser } from './auth';
  * Creates a new recipe in the database.
  * @param name - The name of the recipe.
  * @param description - An optional description of the recipe.
- * @param ingredients - An optional array of ingredients.
+ * @param ingredients - An optional string-string record ( name : quantity )
  * @param instructions - Optional instructions for preparing the recipe.
  * @returns An object with either:
  *          { id: number } containing the new recipe ID if successful, or
@@ -17,7 +17,7 @@ import { getUser } from './auth';
 export async function createRecipe(
     name: string,
     description?: string,
-    ingredients?: string[],
+    ingredients?: Record<string, string>,
     instructions?: string
 ): Errorable<{ id: number }> {
     try {
@@ -50,12 +50,32 @@ export async function getRecipe(id: number): Errorable<{ recipe: Recipe }> {
     }
 }
 
+export async function getUserRecipes(): Errorable<{ recipes: Recipe[] }> {
+    try {
+        const user = await getUser();
+        if (!user) {
+            return { error: 'not-logged-in' };
+        }
+
+        const recipes = await sql`
+            SELECT * FROM Recipe 
+            WHERE authorId = ${user.id}
+            ORDER BY id DESC
+        ` as Recipe[];
+
+        return { recipes };
+    } catch (error) {
+        console.error('Error fetching user recipes:', error);
+        return { error: 'server-error' };
+    }
+}
+
 /**
  * Updates an existing recipe in the database.
  * @param id - The ID of the recipe to update.
  * @param name - An optional new name for the recipe.
  * @param description - An optional new description for the recipe.
- * @param ingredients - Optional new ingredients for the recipe.
+ * @param ingredients - Optional new ingredients for the recipe ( name : quantity ).
  * @param instructions - Optional new instructions for the recipe.
  * @returns A string indicating the result of the operation:
  *          'success', 'not-logged-in', 'not-found', or 'server-error'.
@@ -64,7 +84,7 @@ export async function updateRecipe(
     id: number,
     name?: string,
     description?: string,
-    ingredients?: string[],
+    ingredients?: Record<string, string>,
     instructions?: string
 ) {
     try {
@@ -74,7 +94,7 @@ export async function updateRecipe(
         const recipe = await sql`UPDATE Recipe SET
             name = COALESCE(${name}, name),
             description = COALESCE(${description}, description),
-            ingredients = COALESCE(${ingredients}, ingredients),
+            ingredients = COALESCE(${JSON.stringify(ingredients)}, ingredients),
             instructions = COALESCE(${instructions}, instructions)
             WHERE id = ${id} AND authorId = ${user.id}
             RETURNING id`;
@@ -175,6 +195,6 @@ export interface Recipe {
     authorId: number | null;
     name: string;
     description: string;
-    ingredients: string[];
+    ingredients: Record<string, string>;
     instructions: string;
 }

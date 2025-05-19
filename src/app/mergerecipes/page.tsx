@@ -2,25 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { mergeRecipes } from '@/lib/actions/recipe';
+import { getUserRecipes, mergeRecipes, Recipe } from '@/lib/actions/recipe';
 import RecipeSelectionCard from './components/RecipeSelectionCard';
 import Link from 'next/link';
 
 export default function MergeRecipesPage() {
-    const [recipes, setRecipes] = useState([]);
+    const [recipes, setRecipes] = useState<Recipe[]>([]);
     const [selectedRecipes, setSelectedRecipes] = useState([]);
     const [temperature, setTemperature] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
     useEffect(() => {
         const fetchRecipes = async () => {
             try {
-                const response = await fetch('/api/recipes');
-                if (!response.ok) throw new Error('Failed to fetch recipes');
-                const data = await response.json();
-                setRecipes(data);
+                const response = await getUserRecipes();
+                if ('error' in response) throw new Error('Failed to fetch recipes');
+                setRecipes(response.recipes!);
             } catch (error) {
                 console.error('Failed to fetch recipes:', error);
                 setError('Failed to load your recipes. Please try again later.');

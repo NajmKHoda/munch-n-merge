@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { createRecipe, getRecipe, updateRecipe, deleteRecipe } from '@/lib/actions/recipe';
+import { createRecipe, getRecipe, updateRecipe, deleteRecipe, getUserRecipes } from '@/lib/actions/recipe';
 import { Recipe, FormData, Ingredient } from './components/types';
 import RecipeForm from './components/RecipeForm';
 import RecipeCard from './components/RecipeCard';
@@ -22,11 +22,10 @@ export default function RecipesPage() {
         const fetchRecipes = async () => {
             try {
                 setIsLoading(true);
-                const response = await fetch('/api/recipes');
-                if (!response.ok) throw new Error('Failed to fetch recipes');
-                const data = await response.json();
-                setRecipes(data);
-                
+                const response = await getUserRecipes();
+                if ('error' in response) throw new Error('Failed to fetch recipes');
+                setRecipes(response.recipes!);
+
                 // Handle newly merged recipe
                 if (mergedId) {
                     const mergedRecipeId = parseInt(mergedId);

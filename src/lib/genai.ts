@@ -7,33 +7,36 @@ export const genAI = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY 
 // If you want to merge recipes, call `mergeRecipes` in `/actions/recipe.ts` instead.
 export async function generateMergedRecipe(recipes: Recipe[], temperature?: number) {
     try {
-        const serializedRecipeList = JSON.stringify(
-            recipes.map(recipe => ({
-                name: recipe.name,
-                description: recipe.description,
-                ingredients: recipe.ingredients,
-                instructions: recipe.instructions,
-            })), null, '    ' // 4 spaces
-        );
+        const serializedRecipeList = recipes.map(recipeToGeminiFormat).join(',\n');
 
         const response = await genAI.models.generateContent({
             model: 'gemini-2.0-flash',
             contents: `
                 You are a recipe generator. Given the following recipes, create a new recipe that combines their
-                ingredients and instructions to make a creative, delicious dish.
+                ingredients and instructions to make a creative, delicious dish. Ensure that the instructions follow
+                a clear, numbered order separated by newlines.
 
                 Input:
                 [
                     {
                         "name": "Chocolate Cake",
                         "description": "A rich chocolate cake.",
-                        "ingredients": { "flour": "2 cups", "sugar": "1 cup", "cocoa powder": "1/2 cup" },
+                        "ingredients": [
+                            { "name": "flour", "quantity": "2 cups" },
+                            { "name": "sugar", "quantity": "1 cup" },
+                            { "name": "cocoa powder", "quantity": "1/2 cup" }
+                        ],
                         "instructions": "Mix all ingredients and bake at 350 degrees Fahrenheit for 30 minutes."
                     },
                     {
                         "name": "Vanilla Ice Cream",
                         "description": "A creamy vanilla ice cream.",
-                        "ingredients": { "milk": "2 cups", "cream": "1 cup", "sugar": "3/4 cup", "vanilla extract": "1 tbsp" },
+                        "ingredients": [
+                            { "name": "milk", "quantity": "2 cups" },
+                            { "name": "cream", "quantity": "1 cup" },
+                            { "name": "sugar", "quantity": "3/4 cup" },
+                            { "name": "vanilla extract", "quantity": "1 tbsp" }
+                        ],
                         "instructions": "Mix all ingredients and churn in an ice cream maker."
                     }
                 ]
@@ -42,8 +45,15 @@ export async function generateMergedRecipe(recipes: Recipe[], temperature?: numb
                 {
                     "name": "Chocolate Vanilla Delight",
                     "description": "A delicious chocolate cake topped with creamy vanilla ice cream.",
-                    "ingredients": { "flour": "2 cups", "sugar": "1 cup", "cocoa powder": "1/2 cup", "milk": "2 cups", "cream": "1 cup", "vanilla extract": "1 tbsp" },
-                    "instructions": "Mix the cake ingredients and bake at 350 degrees Fahrenheit for 30 minutes. Serve with a scoop of vanilla ice cream on top."
+                    "ingredients": [
+                        { "name": "flour", "quantity": "2 cups" },
+                        { "name": "sugar", "quantity": "1 cup" },
+                        { "name": "cocoa powder", "quantity": "1/2 cup" },
+                        { "name": "milk", "quantity": "2 cups" },
+                        { "name": "cream", "quantity": "1 cup" },
+                        { "name": "vanilla extract", "quantity": "1 tbsp" }
+                    ],
+                    "instructions": "1. Mix the cake ingredients and bake at 350 degrees Fahrenheit for 30 minutes.\\n2. Serve with a scoop of vanilla ice cream on top."
                 }
 
                 Input:
@@ -57,26 +67,62 @@ export async function generateMergedRecipe(recipes: Recipe[], temperature?: numb
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
-                        name: { type: Type.STRING },
-                        description: { type: Type.STRING },
-                        ingredients: {
-                            type: Type.OBJECT,
-                            description: `Key-value pairs of ingredient names and their quantities.
-                            Example: { "flour": "2 cups", "sugar": "1 tbsp" }`
-                        },
-                        instructions: { type: Type.STRING }
+                    name: { type: Type.STRING },
+                    description: { type: Type.STRING },
+                    ingredients: {
+                        type: Type.ARRAY,
+                        description: `Array of ingredient objects, each with a name and quantity.
+                        Example: [ { "name": "flour", "quantity": "2 cups" }, { "name": "sugar", "quantity": "1 tbsp" } ]`,
+                        items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            name: { type: Type.STRING },
+                            quantity: { type: Type.STRING }
+                        }
+                        }
+                    },
+                    instructions: { type: Type.STRING }
                     },
                     propertyOrdering: ['name', 'description', 'ingredients', 'instructions']
                 }
             }
         });
 
-        return response.text ? JSON.parse(response.text) as MergedRecipe : null;
+        if (!response.text) return null;
 
+        const geminiRecipe: GeminiMergedRecipe = JSON.parse(response.text);
+        return recipeFromGeminiFormat(geminiRecipe);
     } catch (error) {
         console.error('Error merging recipes:', error);
         return null;
     }
+}
+
+function recipeToGeminiFormat(recipe: Recipe): string {
+    return JSON.stringify({
+        name: recipe.name,
+        description: recipe.description,
+        ingredients: Object.entries(recipe.ingredients)
+            .map(([name, quantity]) => ({ name, quantity })),
+        instructions: recipe.instructions
+    }, null, '    ');
+}
+
+function recipeFromGeminiFormat(recipe: GeminiMergedRecipe): MergedRecipe {
+    return {
+        name: recipe.name,
+        description: recipe.description,
+        ingredients: Object.fromEntries(recipe.ingredients
+            .map(ing => [ing.name, ing.quantity])),
+        instructions: recipe.instructions
+    };
+}
+
+interface GeminiMergedRecipe {
+    name: string;
+    description: string;
+    ingredients: { name: string; quantity: string }[];
+    instructions: string;
 }
 
 interface MergedRecipe {
