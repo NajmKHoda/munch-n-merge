@@ -1,0 +1,18 @@
+/* Add to your existing global CSS file */
+
+@keyframes highlight-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+  }
+}
+
+.highlight-recipe {
+  animation: highlight-pulse 2s ease-in-out 3;
+  border-color: #4f46e5 !important;
+}

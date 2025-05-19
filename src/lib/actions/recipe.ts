@@ -129,15 +129,16 @@ export async function mergeRecipes(ids: number[], temperature?: number): Errorab
     if (temperature !== undefined && (temperature < 0 || temperature > 2)) {
         return { error: 'invalid-temperature' };
     }
-
+    console.log(ids)
     try {
         const user = await getUser();
         if (!user) return { error: 'not-logged-in' };
-
         const recipes = (await sql`
             SELECT * FROM Recipe
-            WHERE id IN (${ids.join(',')}) AND authorId = ${user.id}
+            WHERE id = ANY(${ids}) AND authorId = ${user.id}
         `) as Recipe[];
+        
+        console.log(recipes)
         if (recipes.length === 0) return { error: 'recipe-not-found' };
 
         const mergedRecipe = await generateMergedRecipe(recipes, temperature);
