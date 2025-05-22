@@ -1,3 +1,5 @@
+"use server";
+
 import { sql } from '../sql';
 import { getUser } from './auth';
 import { Errorable } from './types';
