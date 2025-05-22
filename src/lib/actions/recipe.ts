@@ -3,6 +3,7 @@
 import { sql } from '../sql';
 import { generateMergedRecipe } from '../genai';
 import { getUser } from './auth';
+import type { Errorable } from './types';
 
 /**
  * Creates a new recipe in the database.
@@ -187,8 +188,6 @@ export async function mergeRecipes(ids: number[], temperature?: number): Errorab
         return { error: 'server-error' };
     }
 }
-
-type Errorable<T> = Promise<Partial<T> & { error?: string }>;
 
 export interface Recipe {
     id: number;

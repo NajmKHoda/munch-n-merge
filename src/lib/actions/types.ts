@@ -1,0 +1,1 @@
+export type Errorable<T> = Promise<T | { error: string }>;
