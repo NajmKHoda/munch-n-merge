@@ -65,9 +65,10 @@ export async function getRecipeFeed(
                 )
             )
             SELECT r.*
-                FROM Recipe r
+                FROM RecipeWithLikes r
                 JOIN Network n ON r.authorId = n.userId AND n.userId != ${user.id}
                 WHERE r.createdAt > ${afterDate}
+                ORDER BY r.likeCount DESC, r.createdAt DESC
                 LIMIT ${limit} OFFSET ${offset}
         ` as Recipe[];
 

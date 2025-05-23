@@ -43,7 +43,9 @@ export async function createRecipe(
  */
 export async function getRecipe(id: number): Errorable<{ recipe: Recipe }> {
     try {
-        const recipe = await sql`SELECT * FROM Recipe WHERE id = ${id}`;
+        const recipe = await sql`
+            SELECT * FROM RecipeWithLikes WHERE id = ${id}
+        `;
         if (recipe.length === 0) return { error: 'not-found' };
         return { recipe: recipe[0] as Recipe };
     } catch (e) {
@@ -59,9 +61,7 @@ export async function getUserRecipes(): Errorable<{ recipes: Recipe[] }> {
         }
 
         const recipes = await sql`
-            SELECT * FROM Recipe 
-            WHERE authorId = ${user.id}
-            ORDER BY id DESC
+            SELECT * FROM RecipeWithLikes WHERE authorId = ${user.id}
         ` as Recipe[];
 
         return { recipes };
@@ -150,7 +150,7 @@ export async function mergeRecipes(ids: number[], temperature?: number): Errorab
     if (temperature !== undefined && (temperature < 0 || temperature > 2)) {
         return { error: 'invalid-temperature' };
     }
-    console.log(ids)
+
     try {
         const user = await getUser();
         if (!user) return { error: 'not-logged-in' };
@@ -158,8 +158,7 @@ export async function mergeRecipes(ids: number[], temperature?: number): Errorab
             SELECT * FROM Recipe
             WHERE id = ANY(${ids}) AND authorId = ${user.id}
         `) as Recipe[];
-        
-        console.log(recipes)
+
         if (recipes.length === 0) return { error: 'recipe-not-found' };
 
         const mergedRecipe = await generateMergedRecipe(recipes, temperature);
@@ -196,4 +195,5 @@ export interface Recipe {
     description: string;
     ingredients: Record<string, string>;
     instructions: string;
+    likeCount: number;
 }
