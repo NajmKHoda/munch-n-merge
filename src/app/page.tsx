@@ -19,13 +19,25 @@ export default async function Home() {
                             <p className="text-lg text-gray-600">
                                 Welcome back, {user.username}!
                             </p>
-                            <div className="mt-4">
+                            <div className="mt-4 space-x-4">
                                 <Link
                                     href="/myrecipies"
                                     className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
                                 >
                                     View My Recipes
                                 </Link>
+                                <Link
+                                    href="/feed"
+                                    className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-amber-500 hover:bg-amber-600"
+                                >
+                                    Explore Recipe Feed
+                                </Link>
+                                {/* <Link
+                                    href="/friends"
+                                    className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-green-500 hover:bg-green-600"
+                                >
+                                    Manage Friends
+                                </Link> */}
                             </div>
                         </div>
                     ) : (

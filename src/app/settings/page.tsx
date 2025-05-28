@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getUser } from '@/lib/actions/auth';
 import { updateUsername, updateEmail, updatePassword } from '@/lib/actions/user';
+import Link from 'next/link';
 
 export default function SettingsPage() {
     const [user, setUser] = useState<{ username: string; email: string } | null>(null);
@@ -118,7 +119,31 @@ export default function SettingsPage() {
 
     return (
         <div className="max-w-2xl mx-auto p-6">
-            <h1 className="text-3xl font-bold mb-8">Account Settings</h1>
+            <h1 className="text-3xl font-bold mb-4 text-indigo-800">Account Settings</h1>
+            
+            {/* Quick Links */}
+            <div className="mb-8 flex justify-center space-x-4">
+                <Link
+                    href="/friends"
+                    className="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 mr-2"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                        />
+                    </svg>
+                    Manage Friends
+                </Link>
+            </div>
             
             {message && (
                 <div className={`p-4 mb-6 rounded ${
@@ -216,4 +241,4 @@ export default function SettingsPage() {
             </div>
         </div>
     );
-} 
+}
