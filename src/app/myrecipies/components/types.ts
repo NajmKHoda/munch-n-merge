@@ -5,6 +5,8 @@ export interface Recipe {
     ingredients: Record<string, string>;
     description: string;
     instructions: string;
+    likeCount: number;
+    createdat?: string | Date;
 }
 
 export interface Ingredient {

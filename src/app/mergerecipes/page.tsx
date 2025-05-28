@@ -1,35 +1,57 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { getUserRecipes, mergeRecipes, Recipe } from '@/lib/actions/recipe';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getUserRecipes, mergeWithExternalRecipes, getRecipe, Recipe } from '@/lib/actions/recipe';
 import RecipeSelectionCard from './components/RecipeSelectionCard';
 import Link from 'next/link';
 
 export default function MergeRecipesPage() {
     const [recipes, setRecipes] = useState<Recipe[]>([]);
-    const [selectedRecipes, setSelectedRecipes] = useState([]);
+    const [externalRecipes, setExternalRecipes] = useState<Recipe[]>([]);
+    const [selectedRecipes, setSelectedRecipes] = useState<number[]>([]);
     const [temperature, setTemperature] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     useEffect(() => {
         const fetchRecipes = async () => {
             try {
+                // Fetch user's own recipes
                 const response = await getUserRecipes();
                 if ('error' in response) throw new Error('Failed to fetch recipes');
                 setRecipes(response.recipes!);
+                
+                // Get external recipe IDs from URL params
+                const externalRecipeIds = searchParams.getAll('recipeId').map(Number);
+                
+                // Fetch external recipes if any are specified
+                if (externalRecipeIds.length > 0) {
+                    const fetchedExternalRecipes: Recipe[] = [];
+                    
+                    for (const id of externalRecipeIds) {
+                        const result = await getRecipe(id);
+                        if ('recipe' in result) {
+                            fetchedExternalRecipes.push(result.recipe);
+                            // Auto-select external recipes
+                            setSelectedRecipes(prev => [...prev, id]);
+                        }
+                    }
+                    
+                    setExternalRecipes(fetchedExternalRecipes);
+                }
             } catch (error) {
                 console.error('Failed to fetch recipes:', error);
-                setError('Failed to load your recipes. Please try again later.');
+                setError('Failed to load recipes. Please try again later.');
             }
         };
 
         fetchRecipes();
-    }, []);
+    }, [searchParams]);
 
-    const toggleRecipeSelection = (recipeId) => {
+    const toggleRecipeSelection = (recipeId: number) => {
         setSelectedRecipes(prevSelected => {
             if (prevSelected.includes(recipeId)) {
                 return prevSelected.filter(id => id !== recipeId);
@@ -57,8 +79,8 @@ export default function MergeRecipesPage() {
             console.log("Merging recipes with IDs:", selectedRecipes);
             console.log("Using temperature:", temperature);
             
-            // Important: Pass parameters separately, not nested in an array
-            const result = await mergeRecipes(selectedRecipes, temperature);
+            // Use mergeWithExternalRecipes to handle both user and external recipes
+            const result = await mergeWithExternalRecipes(selectedRecipes, temperature);
             
             console.log("Merge result:", result);
             
@@ -169,7 +191,25 @@ export default function MergeRecipesPage() {
                 </div>
             </div>
 
-            <h2 className="text-xl font-semibold mb-4 text-gray-700">Available Recipes</h2>
+            {/* External recipes section - only show if there are any */}
+            {externalRecipes.length > 0 && (
+                <div className="mb-8">
+                    <h2 className="text-xl font-semibold mb-4 text-amber-600">Selected Recipes from Feed</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {externalRecipes.map(recipe => (
+                            <RecipeSelectionCard
+                                key={recipe.id}
+                                recipe={recipe}
+                                isSelected={selectedRecipes.includes(recipe.id)}
+                                onToggleSelect={() => toggleRecipeSelection(recipe.id)}
+                                isExternal={true}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            <h2 className="text-xl font-semibold mb-4 text-gray-700">Your Recipes</h2>
             
             {recipes.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

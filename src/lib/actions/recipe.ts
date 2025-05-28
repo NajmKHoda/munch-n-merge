@@ -43,12 +43,16 @@ export async function createRecipe(
  */
 export async function getRecipe(id: number): Errorable<{ recipe: Recipe }> {
     try {
-        const recipe = await sql`
-            SELECT * FROM RecipeWithLikes WHERE id = ${id}
+        const recipes = await sql`
+            SELECT r.*, u.username as authorName 
+            FROM RecipeWithLikes r
+            JOIN AppUser u ON r.authorId = u.id
+            WHERE r.id = ${id}
         `;
-        if (recipe.length === 0) return { error: 'not-found' };
-        return { recipe: recipe[0] as Recipe };
+        if (recipes.length === 0) return { error: 'not-found' };
+        return { recipe: recipes[0] as Recipe };
     } catch (e) {
+        console.error('Error fetching recipe:', e);
         return { error: 'server-error' };
     }
 }
@@ -188,12 +192,78 @@ export async function mergeRecipes(ids: number[], temperature?: number): Errorab
     }
 }
 
-export interface Recipe {
-    id: number;
-    authorId: number | null;
-    name: string;
-    description: string;
-    ingredients: Record<string, string>;
-    instructions: string;
-    likeCount: number;
+/**
+ * Merges multiple recipes (including others' recipes) into a single new recipe using AI generation.
+ * This allows merging recipes that weren't created by the current user.
+ * 
+ * @param ids - An array of recipe IDs to merge. Must include at least two IDs.
+ * @param temperature - An optional temperature value for AI creativity.
+ * @returns An object with either:
+ *          { id: number } containing the new merged recipe ID if successful, or
+ *          { error: string } if an error occurs.
+ */
+export async function mergeWithExternalRecipes(ids: number[], temperature?: number): Errorable<{ id: number }> {
+    if (ids.length < 2) return { error: 'not-enough-recipes' };
+    if (temperature !== undefined && (temperature < 0 || temperature > 2)) {
+        return { error: 'invalid-temperature' };
+    }
+
+    try {
+        const user = await getUser();
+        if (!user) return { error: 'not-logged-in' };
+        
+        // Get all recipes, including ones that don't belong to the user
+        const recipes = (await sql`
+            SELECT * FROM Recipe
+            WHERE id = ANY(${ids})
+        `) as Recipe[];
+
+        if (recipes.length === 0) return { error: 'recipe-not-found' };
+
+        const mergedRecipe = await generateMergedRecipe(recipes, temperature);
+        if (mergedRecipe === null) return { error: 'generation-error' };
+
+        // First, just create the merged recipe and return its ID
+        const [{ id: mergedRecipeId }] = await sql`
+            INSERT INTO Recipe (name, authorId, description, ingredients, instructions)
+            VALUES (
+                ${mergedRecipe.name},
+                ${user.id},
+                ${mergedRecipe.description},
+                ${JSON.stringify(mergedRecipe.ingredients)},
+                ${mergedRecipe.instructions}
+            )
+            RETURNING id
+        `;
+        
+        // Then insert recipe links one by one to avoid duplicate key errors
+        for (const parentId of ids) {
+            try {
+                await sql`
+                    INSERT INTO RecipeLink (parentId, childId)
+                    VALUES (${parentId}, ${mergedRecipeId})
+                    ON CONFLICT DO NOTHING
+                `;
+            } catch (e) {
+                console.log(`Skipping duplicate link for parent ${parentId} -> child ${mergedRecipeId}`);
+            }
+        }
+
+        return { id: mergedRecipeId };
+    } catch (e) {
+        console.error("Error merging with external recipes:", e);
+        return { error: 'server-error' };
+    }
 }
+
+export interface Recipe {
+  id: number;
+  title: string;
+  name: string;
+  description: string;
+  ingredients: string;
+  createdAt: Date;
+  likeCount: number;
+  authorId: number;
+  authorName: string; // this now maps to u.username
+};

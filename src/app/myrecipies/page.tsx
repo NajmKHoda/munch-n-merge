@@ -65,11 +65,6 @@ export default function RecipesPage() {
     const handleCreateRecipe = async (formData: FormData, ingredientsList: Ingredient[]) => {
         console.log("Creating recipe with ingredients:", ingredientsList);
         
-        if (ingredientsList.length === 0) {
-            alert("Please add at least one ingredient before creating a recipe.");
-            return;
-        }
-        
         try {
             // Format ingredients as a key-value object where keys are ingredient names and values are quantities
             const ingredientsObj = ingredientsList.reduce((obj, ing) => {
@@ -79,7 +74,7 @@ export default function RecipesPage() {
             
             console.log("Formatted ingredients for API:", ingredientsObj);
             
-            // Make sure all required fields are provided
+            // Make sure recipe name is provided
             if (!formData.name.trim()) {
                 alert("Please enter a recipe name.");
                 return;

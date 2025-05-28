@@ -52,36 +52,36 @@ export async function getFriendRequests(): Errorable<{
         const rawRequests = await sql`
             SELECT
                 fr.id AS requestId,
-                from.id AS fromId,
-                from.username AS fromUsername,
-                to.id AS toId,
-                to.username AS toUsername
+                from_user.id AS fromId,
+                from_user.username AS fromUsername,
+                to_user.id AS toId,
+                to_user.username AS toUsername
             FROM FriendRequest fr
-            WHERE (fromId = ${user.id} OR toId = ${user.id})
-            JOIN AppUser AS from ON from.id = fr.fromId
-            JOIN AppUser AS to ON to.id = fr.toId
+            JOIN AppUser AS from_user ON from_user.id = fr.fromId
+            JOIN AppUser AS to_user ON to_user.id = fr.toId
+            WHERE (fr.fromId = ${user.id} OR fr.toId = ${user.id})
         ` as {
-            requestId: number;
-            fromId: number;
-            fromUsername: string;
-            toId: number;
-            toUsername: string;
+            requestid: number;
+            fromid: number;
+            fromusername: string;
+            toid: number;
+            tousername: string;
         }[];
-
+        console.log(rawRequests)
         const requests = rawRequests.map(r => ({
-            id: r.requestId,
+            id: r.requestid,
             from: {
-                id: r.fromId,
-                username: r.fromUsername,
+                id: r.fromid,
+                username: r.fromusername,
             },
             to: {
-                id: r.toId,
-                username: r.toUsername,
+                id: r.toid,
+                username: r.tousername,
             }
         }));
-
         return { requests };
     } catch (e) {
+        console.error('Error getting friend requests:', e);
         return { error: 'server-error' };
     }
 }
@@ -94,6 +94,7 @@ export async function getFriendRequests(): Errorable<{
  */
 export async function acceptFriendRequest(id: number) {
     try {
+        console.log(id)
         const user = await getUser();
         if (!user) return 'not-logged-in';
 
@@ -187,6 +188,108 @@ export async function getFriends(): Errorable<{
 
         return { friends };
     } catch (e) {
+        return { error: 'server-error' };
+    }
+}
+
+/**
+ * Searches for users by username to add as friends.
+ * @param query - The search query (username to search for).
+ * @returns An object with either:
+ *          { users: { id, username }[] } containing the matching users if successful, or
+ *          { error: 'not-logged-in' | 'server-error' } if an error occurs.
+ */
+export async function searchUsers(query: string): Errorable<{
+    users: {
+        id: number;
+        username: string;
+    }[]
+}> {
+    try {
+        if (!query || query.trim().length < 2) {
+            return { users: [] };
+        }
+
+        const user = await getUser();
+        if (!user) return { error: 'not-logged-in' };
+
+        // Search users whose username contains the query,
+        // excluding the current user and users who are already friends
+        // or have pending friend requests
+        const users = await sql`
+            SELECT id, username FROM AppUser
+            WHERE 
+                id != ${user.id} 
+                AND username ILIKE ${'%' + query + '%'}
+                AND id NOT IN (
+                    -- Exclude existing friends
+                    SELECT id2 FROM Friend WHERE id1 = ${user.id}
+                    UNION
+                    SELECT id1 FROM Friend WHERE id2 = ${user.id}
+                    UNION
+                    -- Exclude users with pending requests
+                    SELECT toId FROM FriendRequest WHERE fromId = ${user.id}
+                    UNION
+                    SELECT fromId FROM FriendRequest WHERE toId = ${user.id}
+                )
+            ORDER BY username
+            LIMIT 10
+        ` as { id: number; username: string }[];
+        console.log(users)
+        return { users };
+    } catch (e) {
+        console.error('Error searching users:', e);
+        return { error: 'server-error' };
+    }
+}
+
+/**
+ * Checks if the current user has a pending friend request with another user.
+ * @param userId - The ID of the other user.
+ * @returns An object with either:
+ *          { status: 'none' | 'sent' | 'received' | 'friends' } indicating the relationship status, or
+ *          { error: 'not-logged-in' | 'server-error' } if an error occurs.
+ */
+export async function getFriendStatus(userId: number): Errorable<{
+    status: 'none' | 'sent' | 'received' | 'friends'
+}> {
+    try {
+        const user = await getUser();
+        if (!user) return { error: 'not-logged-in' };
+
+        // Check if they are already friends
+        const friends = await sql`
+            SELECT COUNT(*) as count FROM Friend
+            WHERE (id1 = ${user.id} AND id2 = ${userId})
+            OR (id1 = ${userId} AND id2 = ${user.id})
+        ` as [{ count: number }];
+
+        if (friends[0].count > 0) {
+            return { status: 'friends' };
+        }
+
+        // Check for pending requests
+        const sentRequest = await sql`
+            SELECT COUNT(*) as count FROM FriendRequest
+            WHERE fromId = ${user.id} AND toId = ${userId}
+        ` as [{ count: number }];
+
+        if (sentRequest[0].count > 0) {
+            return { status: 'sent' };
+        }
+
+        const receivedRequest = await sql`
+            SELECT COUNT(*) as count FROM FriendRequest
+            WHERE fromId = ${userId} AND toId = ${user.id}
+        ` as [{ count: number }];
+
+        if (receivedRequest[0].count > 0) {
+            return { status: 'received' };
+        }
+
+        return { status: 'none' };
+    } catch (e) {
+        console.error('Error getting friend status:', e);
         return { error: 'server-error' };
     }
 }

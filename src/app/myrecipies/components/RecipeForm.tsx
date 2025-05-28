@@ -89,8 +89,9 @@ export default function RecipeForm({ isCreating, selectedRecipe, onSubmit, onCan
         console.log("Submitting form with ingredients:", ingredientsList);
         console.log("Form data:", formData);
         
-        if (ingredientsList.length === 0) {
-            alert("Please add at least one ingredient before submitting.");
+        // Only check for the recipe name, other fields are optional
+        if (!formData.name.trim()) {
+            alert("Please enter a recipe name before submitting.");
             return;
         }
         
@@ -110,7 +111,9 @@ export default function RecipeForm({ isCreating, selectedRecipe, onSubmit, onCan
             
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label htmlFor="recipeName" className="block text-sm font-medium text-gray-700 mb-1">Recipe Name</label>
+                    <label htmlFor="recipeName" className="block text-sm font-medium text-gray-700 mb-1">
+                        Recipe Name <span className="text-red-500">*</span>
+                    </label>
                     <input
                         id="recipeName"
                         type="text"
@@ -123,7 +126,9 @@ export default function RecipeForm({ isCreating, selectedRecipe, onSubmit, onCan
                 </div>
                 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Ingredients</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Ingredients <span className="text-gray-400 text-xs font-normal">(optional)</span>
+                    </label>
                     <IngredientInput onAddIngredient={addIngredient} />
                     <IngredientsList 
                         ingredients={ingredientsList} 
@@ -134,7 +139,9 @@ export default function RecipeForm({ isCreating, selectedRecipe, onSubmit, onCan
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                            Description <span className="text-gray-400 text-xs font-normal">(optional)</span>
+                        </label>
                         <textarea
                             id="description"
                             placeholder="Briefly describe your recipe..."
@@ -146,7 +153,9 @@ export default function RecipeForm({ isCreating, selectedRecipe, onSubmit, onCan
                     </div>
                     
                     <div>
-                        <label htmlFor="instructions" className="block text-sm font-medium text-gray-700 mb-1">Instructions</label>
+                        <label htmlFor="instructions" className="block text-sm font-medium text-gray-700 mb-1">
+                            Instructions <span className="text-gray-400 text-xs font-normal">(optional)</span>
+                        </label>
                         <textarea
                             id="instructions"
                             placeholder="Step-by-step instructions..."
