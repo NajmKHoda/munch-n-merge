@@ -5,6 +5,8 @@ import { generateMergedRecipe } from '../genai';
 import { getUser } from './auth';
 import type { Errorable } from './types';
 
+const MAX_SEARCH_LIMIT = 25;
+
 /**
  * Creates a new recipe in the database.
  * @param name - The name of the recipe.
@@ -290,7 +292,7 @@ export async function mergeWithExternalRecipes(ids: number[], temperature?: numb
  * ]
  * ```
  */
-export default async function getRecipeMergeHistory(id: number): Errorable<{
+export async function getRecipeMergeHistory(id: number): Errorable<{
     history: {
         id: number,
         name: string,
@@ -325,9 +327,55 @@ export default async function getRecipeMergeHistory(id: number): Errorable<{
     }
 }
 
+/**
+ * Searches for recipes using full-text search across name, description, and ingredients.
+ * Results are ranked by search relevance, like count, and creation date.
+ * @param query - The search query string to match against recipe content.
+ * @param limit - The maximum number of recipes to return (defaults to MAX_SEARCH_LIMIT).
+ * @param offset - The number of recipes to skip for pagination (defaults to 0).
+ * @returns An object with either:
+ *          { recipes: Recipe[] } containing the matching recipes if successful, or
+ *          { error: 'server-error' } if an error occurs.
+ * 
+ * The search uses PostgreSQL's full-text search capabilities to find recipes where the query
+ * matches content in the name, description, or ingredients fields. Results are ordered by:
+ * 1. Search relevance (ts_rank)
+ * 2. Like count (descending)
+ * 3. Creation date (newest first)
+ */
+export async function searchRecipes(
+    query: string,
+    limit: number = MAX_SEARCH_LIMIT,
+    offset: number = 0
+): Errorable<{ recipes: Recipe[] }> {
+    try {
+        const recipes = await sql`
+            WITH RecipeSearch AS (
+                SELECT
+                    r.*,
+                    u.username as authorName,
+                    to_tsvector('english', r.name || ' ' || r.description || ' ' || r.ingredients) AS search_vector,
+                    plainto_tsquery('english', ${query}) AS search_query
+                FROM RecipeWithLikes r
+                JOIN AppUser u ON r.authorId = u.id
+            )
+            SELECT * FROM RecipeSearch rs
+            WHERE rs.search_vector @@ rs.search_query
+            ORDER BY ts_rank(rs.search_vector, rs.search_query) DESC,
+                rs.likeCount DESC,
+                rs.createdAt DESC
+            LIMIT ${limit} OFFSET ${offset}
+        ` as Recipe[];
+
+        return { recipes };
+    } catch (e) {
+        console.error('Error searching recipes:', e);
+        return { error: 'server-error' };
+    }
+}
+
 export interface Recipe {
   id: number;
-  title: string;
   name: string;
   description: string;
   ingredients: string;
