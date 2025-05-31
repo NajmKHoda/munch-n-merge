@@ -256,6 +256,75 @@ export async function mergeWithExternalRecipes(ids: number[], temperature?: numb
     }
 }
 
+/**
+ * Retrieves the merge history for a recipe, showing all parent recipes that were used to create it.
+ * Uses a recursive query to traverse the recipe merge tree and find all ancestors.
+ * @param id - The ID of the recipe to get merge history for.
+ * @returns An object with either:
+ *          { history: Array<{ id: number, name: string, parentIds: number[] }> } containing the recipe history tree if successful, or
+ *          { error: 'not-found' | 'server-error' } if an error occurs.
+ * 
+ * The history array contains nodes representing recipes in the merge tree, where each node has:
+ * - id: The recipe ID
+ * - name: The recipe name  
+ * - parentIds: Array of recipe IDs that were merged to create this recipe (empty for original recipes)
+ * 
+ * @example
+ * For a recipe with ID 5 that was merged from recipes 1 and 2, where recipe 2 was itself merged from recipes 3 and 4:
+ * ```
+ * Recipe 1 (original)    Recipe 3 (original)    Recipe 4 (original)
+ *         \                      \                      /
+ *          \                      \____Recipe 2_______/
+ *           \                            /
+ *            \__________Recipe 5________/
+ * ```
+ * 
+ * The returned history would be:
+ * ```
+ * [
+ *   { id: 1, name: "Pasta Salad", parentIds: [] },
+ *   { id: 2, name: "Veggie Stir Fry", parentIds: [3, 4] },
+ *   { id: 3, name: "Caesar Salad", parentIds: [] },
+ *   { id: 4, name: "Fried Rice", parentIds: [] },
+ *   { id: 5, name: "Fusion Bowl", parentIds: [1, 2] }
+ * ]
+ * ```
+ */
+export default async function getRecipeMergeHistory(id: number): Errorable<{
+    history: {
+        id: number,
+        name: string,
+        parentIds: number[]
+    }[]
+}> {
+    try {
+        const nodes = await sql`
+            WITH RECURSIVE RecipeHistory AS (
+                SELECT r.id, r.name FROM Recipe WHERE id = ${id}
+                UNION
+                SELECT r.id, r.name FROM RecipeLink rl
+                JOIN RecipeHistory rh ON rl.childId = rh.id
+                JOIN Recipe r ON rl.parentId = r.id
+            )
+            SELECT
+            rh.id, rh.name,
+            COALESCE(
+                jsonb_agg(rl.parentId) FILTER (WHERE rl.parentId IS NOT NULL),
+                '[]'::jsonb
+            ) AS parentIds
+            FROM RecipeHistory rh
+            LEFT JOIN RecipeLink rl ON rh.id = rl.childId
+            GROUP BY rh.id, rh.name
+        ` as { id: number, name: string, parentIds: number[] }[];
+
+        if (nodes.length === 0) return { error: 'not-found' };
+        return { history: nodes }
+    } catch (e) {
+        console.error('Error fetching recipe merge history:', e);
+        return { error: 'server-error' };
+    }
+}
+
 export interface Recipe {
   id: number;
   title: string;
