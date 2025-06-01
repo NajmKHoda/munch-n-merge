@@ -41,26 +41,33 @@ export default function Navbar() {
                             >
                                 Home
                             </Link>
-                            <Link
-                                href="/feed"
-                                className={`inline-flex items-center px-2 pt-1 border-b-2 text-sm font-medium transition-all duration-200 ${
-                                    isActive('/feed')
-                                        ? 'border-indigo-500 text-gray-900 font-semibold'
-                                        : 'border-transparent text-gray-500 hover:border-indigo-200 hover:text-gray-700'
-                                }`}
-                            >
-                                Feed
-                            </Link>
-                            <Link
-                                href="/myrecipies"
-                                className={`inline-flex items-center px-2 pt-1 border-b-2 text-sm font-medium transition-all duration-200 ${
-                                    isActive('/myrecipies')
-                                        ? 'border-indigo-500 text-gray-900 font-semibold'
-                                        : 'border-transparent text-gray-500 hover:border-indigo-200 hover:text-gray-700'
-                                }`}
-                            >
-                                My Recipes
-                            </Link>
+                            
+                            {/* Only show these links when user is logged in */}
+                            {user && (
+                                <>
+                                    <Link
+                                        href="/feed"
+                                        className={`inline-flex items-center px-2 pt-1 border-b-2 text-sm font-medium transition-all duration-200 ${
+                                            isActive('/feed')
+                                                ? 'border-indigo-500 text-gray-900 font-semibold'
+                                                : 'border-transparent text-gray-500 hover:border-indigo-200 hover:text-gray-700'
+                                        }`}
+                                    >
+                                        Feed
+                                    </Link>
+                                    <Link
+                                        href="/myrecipies"
+                                        className={`inline-flex items-center px-2 pt-1 border-b-2 text-sm font-medium transition-all duration-200 ${
+                                            isActive('/myrecipies')
+                                                ? 'border-indigo-500 text-gray-900 font-semibold'
+                                                : 'border-transparent text-gray-500 hover:border-indigo-200 hover:text-gray-700'
+                                        }`}
+                                    >
+                                        My Recipes
+                                    </Link>
+                                </>
+                            )}
+                            
                             {/* <Link
                                 href="/mergerecipes"
                                 className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
@@ -263,35 +270,42 @@ export default function Navbar() {
                             </svg>
                             Home
                         </Link>
-                        <Link
-                            href="/feed"
-                            className={`flex items-center gap-2 pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-200 ${
-                                isActive('/feed')
-                                    ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
-                                    : 'border-transparent text-gray-500 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600'
-                            }`}
-                            onClick={() => setIsMenuOpen(false)}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                            </svg>
-                            Feed
-                        </Link>
-                        <Link
-                            href="/myrecipies"
-                            className={`flex items-center gap-2 pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-200 ${
-                                isActive('/myrecipies')
-                                    ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
-                                    : 'border-transparent text-gray-500 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600'
-                            }`}
-                            onClick={() => setIsMenuOpen(false)}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                            </svg>
-                            My Recipes
-                        </Link>
+                        
+                        {/* Only show these links when user is logged in (mobile) */}
+                        {user && (
+                            <>
+                                <Link
+                                    href="/feed"
+                                    className={`flex items-center gap-2 pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-200 ${
+                                        isActive('/feed')
+                                            ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
+                                            : 'border-transparent text-gray-500 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600'
+                                    }`}
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                    </svg>
+                                    Feed
+                                </Link>
+                                <Link
+                                    href="/myrecipies"
+                                    className={`flex items-center gap-2 pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-200 ${
+                                        isActive('/myrecipies')
+                                            ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
+                                            : 'border-transparent text-gray-500 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600'
+                                    }`}
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
+                                    My Recipes
+                                </Link>
+                            </>
+                        )}
                     </div>
+                    
                     <div className="pt-4 pb-3 border-t border-gray-200">
                         {user ? (
                             <div className="space-y-1">
