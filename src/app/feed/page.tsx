@@ -34,7 +34,7 @@ export default function FeedPage() {
         ITEMS_PER_PAGE,
         newOffset
       );
-      
+      console.log('Fetched recipes:', result);
       if ('error' in result) {
         if (result.error === 'not-logged-in') {
           setError('Please log in to view your feed');
@@ -290,6 +290,19 @@ export default function FeedPage() {
                       </span>
                     )}
                   </div>
+                </div>
+              )}
+              
+              {/* Difficulty Badge - Moved to bottom right */}
+              {recipe.difficulty && (
+                <div className="absolute bottom-4 right-4">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    ${recipe.difficulty?.toLowerCase() === 'easy' ? 'bg-green-100 text-green-800' :
+                      recipe.difficulty?.toLowerCase() === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'}`}
+                  >
+                    {recipe.difficulty}
+                  </span>
                 </div>
               )}
               

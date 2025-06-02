@@ -13,7 +13,8 @@ export default function Navbar() {
     const pathname = usePathname();
     const router = useRouter();
     const { user, refreshUser } = useUser();
-
+    const [isLoading, setIsLoading] = useState(true);
+    
     const handleLogout = async () => {
         await logout();
         await refreshUser();
@@ -166,6 +167,7 @@ export default function Navbar() {
                         </div>
                     </div>
                     <div className="hidden md:flex md:items-center">
+                        {}
                         {user ? (
                             <div className="flex items-center">
                                 {/* User actions dropdown */}

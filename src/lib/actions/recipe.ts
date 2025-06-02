@@ -168,17 +168,19 @@ export async function mergeRecipes(ids: number[], temperature?: number): Errorab
         if (recipes.length === 0) return { error: 'recipe-not-found' };
 
         const mergedRecipe = await generateMergedRecipe(recipes, temperature);
+        console.log('Merged recipe:', mergedRecipe);
         if (mergedRecipe === null) return { error: 'generation-error' };
 
         const [{ id: mergedRecipeId }] = await sql`
             WITH MergedRecipe AS (
-                INSERT INTO Recipe (name, authorId, description, ingredients, instructions)
+                INSERT INTO Recipe (name, authorId, description, ingredients, instructions, difficulty)
                 VALUES (
                     ${mergedRecipe.name},
                     ${user.id},
                     ${mergedRecipe.description},
                     ${JSON.stringify(mergedRecipe.ingredients)},
                     ${mergedRecipe.instructions}
+                    ${mergedRecipe.difficulty || null}  -- Difficulty is optional
                 )
                 RETURNING id
             )
@@ -219,24 +221,25 @@ export async function mergeWithExternalRecipes(ids: number[], temperature?: numb
             SELECT * FROM Recipe
             WHERE id = ANY(${ids})
         `) as Recipe[];
-
         if (recipes.length === 0) return { error: 'recipe-not-found' };
 
         const mergedRecipe = await generateMergedRecipe(recipes, temperature);
         if (mergedRecipe === null) return { error: 'generation-error' };
-
+        console.log('Merged recipe:', mergedRecipe);
         // First, just create the merged recipe and return its ID
         const [{ id: mergedRecipeId }] = await sql`
-            INSERT INTO Recipe (name, authorId, description, ingredients, instructions)
-            VALUES (
-                ${mergedRecipe.name},
-                ${user.id},
-                ${mergedRecipe.description},
-                ${JSON.stringify(mergedRecipe.ingredients)},
-                ${mergedRecipe.instructions}
-            )
-            RETURNING id
-        `;
+                INSERT INTO Recipe (name, authorId, description, ingredients, instructions, difficulty)
+                VALUES (
+                    ${mergedRecipe.name},
+                    ${user.id},
+                    ${mergedRecipe.description},
+                    ${JSON.stringify(mergedRecipe.ingredients)},
+                    ${mergedRecipe.instructions},
+                    ${mergedRecipe.difficulty || null}
+                )
+                RETURNING id
+            `;
+
         
         // Then insert recipe links one by one to avoid duplicate key errors
         for (const parentId of ids) {
@@ -364,4 +367,5 @@ export interface Recipe {
   likeCount: number;
   authorId: number;
   authorName: string; // this now maps to u.username
+  difficulty: 'Easy' | 'Medium' | 'Hard' | null | string;
 };

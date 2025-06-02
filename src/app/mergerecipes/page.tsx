@@ -61,7 +61,7 @@ export default function MergeRecipesPage() {
         });
     };
 
-    const handleTemperatureChange = (e) => {
+    const handleTemperatureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseFloat(e.target.value);
         setTemperature(value);
     };
