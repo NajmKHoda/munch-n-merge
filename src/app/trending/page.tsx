@@ -2,70 +2,36 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getRecipeFeed } from '@/lib/actions/feed';
+import { getTrendingRecipes, type TrendingItem } from '@/lib/actions/feed';
 import { likeRecipe, unlikeRecipe, getUserLikes } from '@/lib/actions/like';
-import { Recipe } from '@/lib/actions/recipe';
 
 const ITEMS_PER_PAGE = 10;
-const NETWORK_DEPTH = 3; // Get recipes from friends of friends of friends
 
-export default function FeedPage() {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [offset, setOffset] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [likes, setLikes] = useState<Record<number, boolean>>({});
+export default function TrendingPage() {
+    const [recipes, setRecipes] = useState<TrendingItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [offset, setOffset] = useState(0);
+    const [hasMore, setHasMore] = useState(true);
+    const [likes, setLikes] = useState<Record<number, boolean>>({});
 
-  // Get initial date (30 days ago)
-  const afterDate = new Date();
-  afterDate.setDate(afterDate.getDate() - 30);
+    const loadRecipes = async (newOffset: number = 0) => {
+        setLoading(true);
+        setError(null);
+        const rows = await getTrendingRecipes(ITEMS_PER_PAGE, newOffset);
 
-  // Load recipes and user likes
-  const loadRecipes = async (newOffset: number = 0) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      // Fetch recipes
-      const result = await getRecipeFeed(
-        NETWORK_DEPTH,
-        afterDate,
-        ITEMS_PER_PAGE,
-        newOffset
-      );
-      
-      if ('error' in result) {
-        if (result.error === 'not-logged-in') {
-          setError('Please log in to view your feed');
+        if (newOffset === 0) {
+            setRecipes(rows);
         } else {
-          setError('Failed to load recipes');
+            setRecipes(prev => [...prev, ...rows]);
         }
-        return;
-      }
-      
-      // Update recipes state
-      if (newOffset === 0) {
-        setRecipes(result.recipes);
-      } else {
-        setRecipes(prev => [...prev, ...result.recipes]);
-      }
-      
-      setHasMore(result.recipes.length === ITEMS_PER_PAGE);
-      setOffset(newOffset);
-      
-      // Fetch user likes if this is the initial load
-      if (newOffset === 0) {
-        await loadUserLikes();
-      }
-    } catch (err) {
-      setError('An unexpected error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
+        setHasMore(rows.length === ITEMS_PER_PAGE);
+        setOffset(newOffset);
+        setLoading(false);
+    };
 
-  // Load user likes
+
+    // Load user likes
   const loadUserLikes = async () => {
     try {
       const likesResult = await getUserLikes();
@@ -85,6 +51,7 @@ export default function FeedPage() {
 
   useEffect(() => {
     loadRecipes();
+    loadUserLikes();
   }, []);
 
   const handleLoadMore = () => {
@@ -165,7 +132,7 @@ export default function FeedPage() {
   if (error && recipes.length === 0) {
     return (
       <div className="container mx-auto p-4">
-        <h1 className="text-3xl font-bold mb-6">Recipe Feed</h1>
+        <h1 className="text-3xl font-bold mb-6">Trending Recipes</h1>
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           <p>{error}</p>
           {error === 'Please log in to view your feed' && (
@@ -176,11 +143,11 @@ export default function FeedPage() {
         </div>
       </div>
     );
-  }
+}
 
   return (
     <div className="container mx-auto p-4 max-w-2xl">
-      <h1 className="text-3xl font-bold mb-6 text-indigo-800">Recipe Feed</h1>
+      <h1 className="text-3xl font-bold mb-6 text-indigo-800">Trending Recipes</h1>
       
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -304,11 +271,8 @@ export default function FeedPage() {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
-          <p className="text-gray-600 font-medium">No recipes found in your network</p>
-          <p className="text-gray-500 mt-2 text-sm">Try adding more friends or check back later!</p>
-          <Link href="/friends" className="mt-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm">
-            Find Friends
-          </Link>
+          <p className="text-gray-600 font-medium">No trending recipes yet</p>
+          <p className="text-gray-500 mt-2 text-sm">Be the first to like a few dishes and they'll show up here!</p>
         </div>
       )}
       
