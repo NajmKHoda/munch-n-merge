@@ -112,57 +112,27 @@ export default function Navbar() {
                                 </Link>
                             )} */}
 
-                            {/* Add Search Recipes dropdown */}
-                            <div className="relative group">
-                                <button
-                                    onClick={() => setIsSearchOpen(!isSearchOpen)}
-                                    className={`inline-flex items-center px-2 pt-1 border-b-2 text-sm font-medium transition-all duration-200 ${
-                                        isSearchOpen
-                                            ? 'border-indigo-500 text-gray-900 font-semibold'
-                                            : 'border-transparent text-gray-500 hover:border-indigo-200 hover:text-gray-700'
-                                    }`}
-                                >
-                                    <span>Search Recipes</span>
-                                    <svg
-                                        className={`ml-2 h-4 w-4 transition-transform ${isSearchOpen ? 'transform rotate-180' : ''}`}
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                    >
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                    </svg>
-                                </button>
-
-                                {/* Search Dropdown */}
-                                {isSearchOpen && (
-                                    <div className="absolute left-0 mt-1 w-80 bg-white rounded-md shadow-lg py-1 z-20">
-                                        <div className="px-4 py-3">
-                                            <form onSubmit={handleSearch}>
-                                                <div className="relative">
-                                                    <input
-                                                        type="text"
-                                                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                                                        placeholder="Search recipe titles..."
-                                                        value={searchQuery}
-                                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                                    />
-                                                    <button
-                                                        type="submit"
-                                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-600"
-                                                    >
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                            </form>
-                                            <div className="mt-2">
-                                                <p className="text-xs text-gray-500">Search for recipes by title</p>
-                                            </div>
-                                        </div>
+                            {/* Replace Search Recipes dropdown with inline search bar */}
+                            <div className="relative">
+                                <form onSubmit={handleSearch} className="flex items-center">
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            className="w-64 px-4 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400"
+                                            placeholder="Search recipes..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                        />
+                                        <button
+                                            type="submit"
+                                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-600 focus:outline-none"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                        </button>
                                     </div>
-                                )}
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -345,6 +315,32 @@ export default function Navbar() {
                             </svg>
                             Home
                         </Link>
+                        
+                        {/* Add search bar in mobile menu */}
+                        <div className="px-3 py-2">
+                            <form onSubmit={(e) => {
+                                handleSearch(e);
+                                setIsMenuOpen(false);
+                            }}>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400"
+                                        placeholder="Search recipes..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-600 focus:outline-none"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                         
                         {/* Only show these links when user is logged in (mobile) */}
                         {user && (
