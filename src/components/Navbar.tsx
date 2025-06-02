@@ -2,13 +2,16 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
 import { useUser } from '@/lib/context/UserContext';
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     const pathname = usePathname();
+    const router = useRouter();
     const { user, refreshUser } = useUser();
 
     const handleLogout = async () => {
@@ -18,6 +21,15 @@ export default function Navbar() {
     };
 
     const isActive = (path: string) => pathname === path;
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+            setIsSearchOpen(false);
+            setSearchQuery('');
+        }
+    };
 
     return (
         <nav className="bg-white shadow-sm sticky top-0 z-10">
@@ -98,6 +110,59 @@ export default function Navbar() {
                                     Friends
                                 </Link>
                             )} */}
+
+                            {/* Add Search Recipes dropdown */}
+                            <div className="relative group">
+                                <button
+                                    onClick={() => setIsSearchOpen(!isSearchOpen)}
+                                    className={`inline-flex items-center px-2 pt-1 border-b-2 text-sm font-medium transition-all duration-200 ${
+                                        isSearchOpen
+                                            ? 'border-indigo-500 text-gray-900 font-semibold'
+                                            : 'border-transparent text-gray-500 hover:border-indigo-200 hover:text-gray-700'
+                                    }`}
+                                >
+                                    <span>Search Recipes</span>
+                                    <svg
+                                        className={`ml-2 h-4 w-4 transition-transform ${isSearchOpen ? 'transform rotate-180' : ''}`}
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+
+                                {/* Search Dropdown */}
+                                {isSearchOpen && (
+                                    <div className="absolute left-0 mt-1 w-80 bg-white rounded-md shadow-lg py-1 z-20">
+                                        <div className="px-4 py-3">
+                                            <form onSubmit={handleSearch}>
+                                                <div className="relative">
+                                                    <input
+                                                        type="text"
+                                                        className="w-full px-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                                        placeholder="Search recipe titles..."
+                                                        value={searchQuery}
+                                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                                    />
+                                                    <button
+                                                        type="submit"
+                                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-indigo-600"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </form>
+                                            <div className="mt-2">
+                                                <p className="text-xs text-gray-500">Search for recipes by title</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                     <div className="hidden md:flex md:items-center">
