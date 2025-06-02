@@ -386,6 +386,7 @@ export interface Recipe {
   name: string;
   description: string;
   ingredients: string;
+  instructions: string;
   createdAt: Date;
   likeCount: number;
   authorId: number;

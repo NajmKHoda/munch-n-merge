@@ -24,7 +24,12 @@ export default function RecipesPage() {
                 setIsLoading(true);
                 const response = await getUserRecipes();
                 if ('error' in response) throw new Error('Failed to fetch recipes');
-                setRecipes(response.recipes!);
+                setRecipes(response.recipes!.map(recipe => ({
+                    ...recipe,
+                    ingredients: typeof recipe.ingredients === 'string' 
+                        ? JSON.parse(recipe.ingredients) 
+                        : recipe.ingredients
+                })));
 
                 // Handle newly merged recipe
                 if (mergedId) {
@@ -121,7 +126,9 @@ export default function RecipesPage() {
                             name: newRecipe.recipe.name,
                             description: newRecipe.recipe.description,
                             instructions: newRecipe.recipe.instructions ?? '',
-                            ingredients: newRecipe.recipe.ingredients ?? {},
+                            ingredients: typeof newRecipe.recipe.ingredients === 'string'
+                                ? JSON.parse(newRecipe.recipe.ingredients)
+                                : newRecipe.recipe.ingredients,
                             authorId: newRecipe.recipe.authorId,
                             authorName: newRecipe.recipe.authorName,
                             likeCount: newRecipe.recipe.likeCount ?? 0,
@@ -172,7 +179,9 @@ export default function RecipesPage() {
                     name: updatedRecipe.recipe.name,
                     description: updatedRecipe.recipe.description,
                     instructions: updatedRecipe.recipe.instructions ?? '',
-                    ingredients: updatedRecipe.recipe.ingredients ?? {},
+                    ingredients: typeof updatedRecipe.recipe.ingredients === 'string'
+                        ? JSON.parse(updatedRecipe.recipe.ingredients)
+                        : updatedRecipe.recipe.ingredients,
                     authorId: updatedRecipe.recipe.authorId,
                     authorName: updatedRecipe.recipe.authorName,
                     likeCount: updatedRecipe.recipe.likeCount ?? 0,

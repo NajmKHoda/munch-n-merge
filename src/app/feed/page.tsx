@@ -325,7 +325,7 @@ export default function FeedPage() {
             {/* Recipe content */}
             <div className="p-4 ml-2">
               <Link 
-                href={`/recipes/${recipe.id}`}
+                href={`/recipe/${recipe.id}`}
                 className="block mb-2"
               >
                 <h2 className="text-xl font-bold text-gray-800 hover:text-indigo-600 transition-colors">
