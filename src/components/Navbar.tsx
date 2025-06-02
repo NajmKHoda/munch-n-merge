@@ -24,13 +24,21 @@ export default function Navbar() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between h-16">
                     <div className="flex items-center">
-                        <div className="flex-shrink-0 flex items-center">
-                            <Link href="/" className="text-2xl font-bold text-indigo-600 hover:text-indigo-700 transition-colors duration-200">
+                        <div className="flex items-center">
+                            {/* Icon next to logo */}
+                            <img
+                                src="/images/IconForWebsite.png"
+                                alt="Site Icon"
+                                className="h-8 w-8 sm:h-10 sm:w-10 mr-2 object-contain"
+                                style={{ filter: 'invert(29%) sepia(91%) saturate(1817%) hue-rotate(221deg) brightness(93%) contrast(101%)' }}
+                            />
+                            <Link href="/" className="text-2xl font-bold text-indigo-600 hover:text-indigo-700 transition-colors duration-200 flex items-center">
                                 <span className="hidden sm:inline">Munch-N-Merge</span>
                                 <span className="sm:hidden">M&M</span>
                             </Link>
                         </div>
-                        <div className="hidden md:ml-8 md:flex md:space-x-4 lg:space-x-6">
+                        {/* Add more space between logo/icon and nav links */}
+                        <div className="hidden md:flex md:ml-16 md:space-x-4 lg:ml-10 lg:space-x-6">
                             <Link
                                 href="/"
                                 className={`inline-flex items-center px-2 pt-1 border-b-2 text-sm font-medium transition-all duration-200 ${
