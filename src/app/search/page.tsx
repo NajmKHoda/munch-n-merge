@@ -63,7 +63,7 @@ export default function SearchPage() {
                         <Link
                             key={recipe.id}
                             href={`/recipe/${recipe.id}`}
-                            className="block bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+                            className="block bg-white rounded-lg border border-gray-200 border-l-4 border-l-purple-500 overflow-hidden hover:shadow-md transition-shadow"
                         >
                             <div className="p-6">
                                 <h2 className="text-xl font-semibold text-gray-900 mb-2">
@@ -72,10 +72,42 @@ export default function SearchPage() {
                                 <p className="text-gray-600 text-sm mb-4">
                                     {recipe.description}
                                 </p>
-                                <div className="flex items-center text-sm text-gray-500">
-                                    <span>By {recipe.authorname}</span>
-                                    <span className="mx-2">•</span>
-                                    <span>{recipe.likecount} likes</span>
+                                <div className="flex items-center text-sm">
+                                    <span className="flex items-center text-amber-500 font-medium">
+                                        <svg 
+                                            xmlns="http://www.w3.org/2000/svg" 
+                                            className="h-4 w-4 mr-1" 
+                                            fill="none" 
+                                            viewBox="0 0 24 24" 
+                                            stroke="currentColor"
+                                        >
+                                            <path 
+                                                strokeLinecap="round" 
+                                                strokeLinejoin="round" 
+                                                strokeWidth={2} 
+                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" 
+                                            />
+                                        </svg>
+                                        By {recipe.authorname}
+                                    </span>
+                                    <span className="mx-2 text-gray-400">•</span>
+                                    <span className="flex items-center text-red-500">
+                                        <svg 
+                                            xmlns="http://www.w3.org/2000/svg" 
+                                            className="h-4 w-4 mr-1" 
+                                            fill="none" 
+                                            viewBox="0 0 24 24" 
+                                            stroke="currentColor"
+                                        >
+                                            <path 
+                                                strokeLinecap="round" 
+                                                strokeLinejoin="round" 
+                                                strokeWidth={2} 
+                                                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+                                            />
+                                        </svg>
+                                        {recipe.likecount} likes
+                                    </span>
                                 </div>
                             </div>
                         </Link>
