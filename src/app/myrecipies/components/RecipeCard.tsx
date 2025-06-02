@@ -5,10 +5,12 @@ interface RecipeCardProps {
     recipe: Recipe;
     onEdit: (recipe: Recipe) => void;
     onDelete: (id: number) => void;
+    likeCount: number;
 }
 
-export default function RecipeCard({ recipe, onEdit, onDelete }: RecipeCardProps) {
+export default function RecipeCard({ recipe, onEdit, onDelete, likeCount }: RecipeCardProps) {
     const [showIngredients, setShowIngredients] = useState(false);
+    const [showInstructions, setShowInstructions] = useState(false);
 
     return (
         <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm hover:shadow transition-all duration-200 relative overflow-hidden">
@@ -20,7 +22,7 @@ export default function RecipeCard({ recipe, onEdit, onDelete }: RecipeCardProps
                 <div className="mb-3">
                     <button 
                         onClick={() => setShowIngredients(!showIngredients)}
-                        className="text-amber-600 font-medium text-sm flex items-center mb-2 hover:text-amber-700"
+                        className="text-amber-600 font-medium text-sm flex items-center mb-2 hover:text-indigo-700"
                     >
                         {showIngredients ? '▼' : '►'} Ingredients
                     </button>
@@ -39,10 +41,20 @@ export default function RecipeCard({ recipe, onEdit, onDelete }: RecipeCardProps
                     )}
                 </div>
                 
-                <div className="mb-3">
-                    <h3 className="font-medium mb-2 text-gray-700 text-sm">Instructions</h3>
-                    <p className="whitespace-pre-wrap text-gray-700 text-sm bg-gray-50 p-3 rounded-md border border-gray-100">{recipe.instructions}</p>
-                </div>
+                {recipe.instructions && recipe.instructions.trim() !== '' && (
+                    <div className="mb-3">
+                        <button 
+                            onClick={() => setShowInstructions(!showInstructions)}
+                            className="text-indigo-600 font-medium text-sm flex items-center mb-2 hover:text-indigo-700"
+                        >
+                            {showInstructions ? '▼' : '►'} Instructions
+                        </button>
+                        
+                        {showInstructions && (
+                            <p className="whitespace-pre-wrap text-gray-700 text-sm bg-gray-50 p-3 rounded-md border border-gray-100">{recipe.instructions}</p>
+                        )}
+                    </div>
+                )}
                 
                 <div className="flex gap-2 mt-3 pt-2 border-t border-gray-100">
                     <button

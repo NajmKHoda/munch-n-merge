@@ -85,16 +85,17 @@ export async function getFriendsFeed(
                 JOIN Friend f5 ON f4.id2 = f5.id1
                 WHERE f1.id1 = ${user.id} AND f5.id2 != ${user.id} AND ${depth} >= 5
             )
-            SELECT DISTINCT r.*, u.username AS authorName
+            SELECT DISTINCT r.id, r.name, r.description, r.ingredients, r.createdAt, r.likeCount, r.authorId, u.username AS authorName, base.difficulty
             FROM RecipeWithLikes r
             JOIN UserNetwork n ON r.authorId = n.userId AND n.userId != ${user.id}
             JOIN AppUser u ON u.id = r.authorId
+            JOIN Recipe base ON base.id = r.id
             WHERE r.createdAt > ${afterDate}
             ORDER BY r.likeCount DESC, r.createdAt DESC
             LIMIT ${limit} OFFSET ${offset}
         ` as Recipe[];
         return { recipes };
-
+        console.log(recipes)
     } catch (e) {
         console.error('Error fetching recipe feed:', e);
         return { error: 'server-error' };

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getFriendsFeed } from '@/lib/actions/feed';
 import { likeRecipe, unlikeRecipe, getUserLikes } from '@/lib/actions/like';
+import { addFavorite, removeFavorite, getUserFavorites } from '@/lib/actions/favorite';
 import { Recipe } from '@/lib/actions/recipe';
 
 const ITEMS_PER_PAGE = 10;
@@ -16,12 +17,13 @@ export default function FeedPage() {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [likes, setLikes] = useState<Record<number, boolean>>({});
+  const [favorites, setFavorites] = useState<Record<number, boolean>>({});
 
   // Get initial date (30 days ago)
   const afterDate = new Date();
   afterDate.setDate(afterDate.getDate() - 30);
 
-  // Load recipes and user likes
+  // Load recipes and user likes/favorites
   const loadRecipes = async (newOffset: number = 0) => {
     setLoading(true);
     setError(null);
@@ -34,7 +36,7 @@ export default function FeedPage() {
         ITEMS_PER_PAGE,
         newOffset
       );
-      
+      console.log('Fetched recipes:', result);
       if ('error' in result) {
         if (result.error === 'not-logged-in') {
           setError('Please log in to view your feed');
@@ -54,9 +56,9 @@ export default function FeedPage() {
       setHasMore(result.recipes.length === ITEMS_PER_PAGE);
       setOffset(newOffset);
       
-      // Fetch user likes if this is the initial load
+      // Fetch user likes and favorites if this is the initial load
       if (newOffset === 0) {
-        await loadUserLikes();
+        await Promise.all([loadUserLikes(), loadUserFavorites()]);
       }
     } catch (err) {
       setError('An unexpected error occurred');
@@ -78,6 +80,24 @@ export default function FeedPage() {
         }, {} as Record<number, boolean>);
         
         setLikes(likesMap);
+      }
+    } catch (error) {
+    }
+  };
+
+  // Load user favorites
+  const loadUserFavorites = async () => {
+    try {
+      const favoritesResult = await getUserFavorites();
+      
+      if (!('error' in favoritesResult)) {
+        // Create a map of recipe IDs to favorite status
+        const favoritesMap = favoritesResult.favoriteRecipes.reduce((acc, recipeId) => {
+          acc[recipeId] = true;
+          return acc;
+        }, {} as Record<number, boolean>);
+        
+        setFavorites(favoritesMap);
       }
     } catch (error) {
     }
@@ -162,6 +182,32 @@ export default function FeedPage() {
     }
   };
 
+  const handleFavorite = async (id: number) => {
+    if (favorites[id]) {
+      // Immediately update UI for better user experience
+      setFavorites(prev => ({ ...prev, [id]: false }));
+      
+      // Make API call
+      const result = await removeFavorite(id);
+      
+      // If API call fails, revert UI changes
+      if (result !== 'success') {
+        setFavorites(prev => ({ ...prev, [id]: true }));
+      }
+    } else {
+      // Immediately update UI for better user experience
+      setFavorites(prev => ({ ...prev, [id]: true }));
+      
+      // Make API call
+      const result = await addFavorite(id);
+      
+      // If API call fails, revert UI changes
+      if (result !== 'success') {
+        setFavorites(prev => ({ ...prev, [id]: false }));
+      }
+    }
+  };
+
   if (error && recipes.length === 0) {
     return (
       <div className="container mx-auto p-4">
@@ -196,12 +242,11 @@ export default function FeedPage() {
             {/* Recipe author header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                  {((recipe as any).authorid || recipe.authorId)?.toString()[0] || '?'}
+                <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold">
+                  <img src="/images/IconForWebsite.png" alt={recipe.authorName} className="w-10 h-10 ml-2 rounded-full" />
                 </div>
                 <div className="ml-3">
                   <p className="font-medium text-gray-800">Chef #{(recipe as any).authorname || recipe.authorId}</p>
-                  <p className="text-xs text-gray-500">Recipe Creator</p>
                 </div>
               </div>
               
@@ -228,6 +273,27 @@ export default function FeedPage() {
                   <span className="text-sm w-5 text-center">
                     {Number((recipe as any).likecount || recipe.likeCount || 0)}
                   </span>
+                </button>
+
+                <button 
+                  onClick={() => handleFavorite(recipe.id)}
+                  className={`flex items-center gap-1 p-1 rounded-md ml-2 ${favorites[recipe.id] ? 'text-yellow-500' : 'text-gray-500 hover:text-gray-700'}`}
+                  aria-label={favorites[recipe.id] ? "Remove from favorites" : "Add to favorites"}
+                >
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-6 w-6" 
+                    fill={favorites[recipe.id] ? "currentColor" : "none"} 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                    />
+                  </svg>
                 </button>
                 
                 <Link 
@@ -293,6 +359,19 @@ export default function FeedPage() {
                 </div>
               )}
               
+              {/* Difficulty Badge - Moved to bottom right */}
+              {recipe.difficulty && (
+                <div className="absolute bottom-4 right-4">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                    ${recipe.difficulty?.toLowerCase() === 'easy' ? 'bg-green-100 text-green-800' :
+                      recipe.difficulty?.toLowerCase() === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'}`}
+                  >
+                    {recipe.difficulty}
+                  </span>
+                </div>
+              )}
+              
             </div>
           </div>
         ))}
@@ -318,14 +397,13 @@ export default function FeedPage() {
         </div>
       )}
       
-      {hasMore && recipes.length > 0 && (
+      {hasMore && !loading && recipes.length > 0 && (
         <div className="flex justify-center mt-6">
           <button
             onClick={handleLoadMore}
-            disabled={loading}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-indigo-300 transition-colors shadow-sm"
+            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm"
           >
-            {loading ? 'Loading...' : 'Load More'}
+            Load More
           </button>
         </div>
       )}

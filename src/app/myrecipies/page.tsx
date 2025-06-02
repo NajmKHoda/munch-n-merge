@@ -99,8 +99,6 @@ export default function RecipesPage() {
                     recipeData.instructions
                 );
 
-                console.log("API response:", result);
-
                 if ('error' in result) {
                     // Handle specific error cases
                     if (result.error === 'server-error') {
@@ -117,7 +115,18 @@ export default function RecipesPage() {
                 if ('id' in result && result.id) {
                     const newRecipe = await getRecipe(result.id);
                     if ('recipe' in newRecipe && newRecipe.recipe) {
-                        setRecipes(prevRecipes => [...prevRecipes, newRecipe.recipe]);
+                        // Ensure the new recipe matches the local Recipe type
+                        const localRecipe: Recipe = {
+                            id: newRecipe.recipe.id,
+                            name: newRecipe.recipe.name,
+                            description: newRecipe.recipe.description,
+                            instructions: newRecipe.recipe.instructions ?? '',
+                            ingredients: newRecipe.recipe.ingredients ?? {},
+                            authorId: newRecipe.recipe.authorId,
+                            authorName: newRecipe.recipe.authorName,
+                            likeCount: newRecipe.recipe.likeCount ?? 0,
+                        };
+                        setRecipes(prevRecipes => [...prevRecipes, localRecipe]);
                         resetForm();
                         setNotification({
                             message: 'Recipe created successfully!',
@@ -157,8 +166,18 @@ export default function RecipesPage() {
         if (result === 'success') {
             const updatedRecipe = await getRecipe(selectedRecipe.id);
             if ('recipe' in updatedRecipe && updatedRecipe.recipe) {
-                const recipe = updatedRecipe.recipe;
-                setRecipes(recipes.map(r => r.id === selectedRecipe.id ? recipe : r));
+                // Properly convert server recipe type to local Recipe type
+                const recipe: Recipe = {
+                    id: updatedRecipe.recipe.id,
+                    name: updatedRecipe.recipe.name,
+                    description: updatedRecipe.recipe.description,
+                    instructions: updatedRecipe.recipe.instructions ?? '',
+                    ingredients: updatedRecipe.recipe.ingredients ?? {},
+                    authorId: updatedRecipe.recipe.authorId,
+                    authorName: updatedRecipe.recipe.authorName,
+                    likeCount: updatedRecipe.recipe.likeCount ?? 0,
+                };
+                setRecipes(prevRecipes => prevRecipes.map(r => r.id === selectedRecipe.id ? recipe : r));
                 resetForm();
                 setNotification({
                     message: 'Recipe updated successfully!',
@@ -199,8 +218,8 @@ export default function RecipesPage() {
     };
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <h1 className="text-3xl font-bold mb-4 text-indigo-800">My Recipes</h1>
+        <div className="container mx-auto p-4">
+            <h1 className="text-3xl font-bold mb-6 text-indigo-800">My Recipes</h1>
             
             {notification && (
                 <div className={`mb-6 p-4 rounded-md ${
@@ -256,32 +275,46 @@ export default function RecipesPage() {
                     <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
                 </div>
             ) : recipes.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {recipes.map(recipe => (
-                        <div key={recipe.id} id={`recipe-${recipe.id}`}>
+                        <div key={recipe.id} id={`recipe-${recipe.id}`} className="aspect-square">
                             <RecipeCard 
                                 recipe={recipe}
                                 onEdit={startEdit}
                                 onDelete={handleDeleteRecipe}
+                                likeCount={recipe.likeCount || 0}
                             />
                         </div>
                     ))}
                 </div>
             ) : (
-                <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-700 mb-2">No Recipes Yet</h3>
-                    <p className="text-gray-500 mb-4">You haven't created any recipes yet.</p>
+                <div className="text-center py-8 bg-white rounded-lg shadow-sm border border-gray-200 p-6 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <p className="text-gray-600 font-medium">No Recipes Yet</p>
+                    <p className="text-gray-500 mt-2 text-sm">You haven't created any recipes yet.</p>
                     <button
                         onClick={() => setIsCreating(true)}
-                        className="inline-flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors shadow-sm"
+                        className="mt-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors shadow-sm text-sm"
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                        </svg>
                         Create Your First Recipe
                     </button>
                 </div>
             )}
+
+            <style jsx global>{`
+                .highlight-recipe {
+                    animation: highlight 2s ease-in-out;
+                }
+                
+                @keyframes highlight {
+                    0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+                    70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+                }
+            `}</style>
         </div>
     );
 }

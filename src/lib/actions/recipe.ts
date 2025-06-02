@@ -5,6 +5,8 @@ import { generateMergedRecipe } from '../genai';
 import { getUser } from './auth';
 import type { Errorable } from './types';
 
+const MAX_SEARCH_LIMIT = 25;
+
 /**
  * Creates a new recipe in the database.
  * @param name - The name of the recipe.
@@ -166,17 +168,19 @@ export async function mergeRecipes(ids: number[], temperature?: number): Errorab
         if (recipes.length === 0) return { error: 'recipe-not-found' };
 
         const mergedRecipe = await generateMergedRecipe(recipes, temperature);
+        console.log('Merged recipe:', mergedRecipe);
         if (mergedRecipe === null) return { error: 'generation-error' };
 
         const [{ id: mergedRecipeId }] = await sql`
             WITH MergedRecipe AS (
-                INSERT INTO Recipe (name, authorId, description, ingredients, instructions)
+                INSERT INTO Recipe (name, authorId, description, ingredients, instructions, difficulty)
                 VALUES (
                     ${mergedRecipe.name},
                     ${user.id},
                     ${mergedRecipe.description},
                     ${JSON.stringify(mergedRecipe.ingredients)},
                     ${mergedRecipe.instructions}
+                    ${mergedRecipe.difficulty || null}  -- Difficulty is optional
                 )
                 RETURNING id
             )
@@ -217,24 +221,25 @@ export async function mergeWithExternalRecipes(ids: number[], temperature?: numb
             SELECT * FROM Recipe
             WHERE id = ANY(${ids})
         `) as Recipe[];
-
         if (recipes.length === 0) return { error: 'recipe-not-found' };
 
         const mergedRecipe = await generateMergedRecipe(recipes, temperature);
         if (mergedRecipe === null) return { error: 'generation-error' };
-
+        console.log('Merged recipe:', mergedRecipe);
         // First, just create the merged recipe and return its ID
         const [{ id: mergedRecipeId }] = await sql`
-            INSERT INTO Recipe (name, authorId, description, ingredients, instructions)
-            VALUES (
-                ${mergedRecipe.name},
-                ${user.id},
-                ${mergedRecipe.description},
-                ${JSON.stringify(mergedRecipe.ingredients)},
-                ${mergedRecipe.instructions}
-            )
-            RETURNING id
-        `;
+                INSERT INTO Recipe (name, authorId, description, ingredients, instructions, difficulty)
+                VALUES (
+                    ${mergedRecipe.name},
+                    ${user.id},
+                    ${mergedRecipe.description},
+                    ${JSON.stringify(mergedRecipe.ingredients)},
+                    ${mergedRecipe.instructions},
+                    ${mergedRecipe.difficulty || null}
+                )
+                RETURNING id
+            `;
+
         
         // Then insert recipe links one by one to avoid duplicate key errors
         for (const parentId of ids) {
@@ -256,9 +261,105 @@ export async function mergeWithExternalRecipes(ids: number[], temperature?: numb
     }
 }
 
+/**
+ * Retrieves the merge history for a recipe, showing all parent recipes that were used to create it.
+ * Uses a recursive query to traverse the recipe merge tree and find all ancestors.
+ * @param id - The ID of the recipe to get merge history for.
+ * @returns An object with either:
+ *          { history: Array<{ id: number, name: string, parentIds: number[] }> } containing the recipe history tree if successful, or
+ *          { error: 'not-found' | 'server-error' } if an error occurs.
+ * 
+ * The history array contains nodes representing recipes in the merge tree, where each node has:
+ * - id: The recipe ID
+ * - name: The recipe name  
+ * - parentIds: Array of recipe IDs that were merged to create this recipe (empty for original recipes)
+ * 
+ * @example
+ * For a recipe with ID 5 that was merged from recipes 1 and 2, where recipe 2 was itself merged from recipes 3 and 4:
+ * ```
+ * Recipe 1 (original)    Recipe 3 (original)    Recipe 4 (original)
+ *         \                      \                      /
+ *          \                      \____Recipe 2_______/
+ *           \                            /
+ *            \__________Recipe 5________/
+ * ```
+ * 
+ * The returned history would be:
+ * ```
+ * [
+ *   { id: 1, name: "Pasta Salad", parentIds: [] },
+ *   { id: 2, name: "Veggie Stir Fry", parentIds: [3, 4] },
+ *   { id: 3, name: "Caesar Salad", parentIds: [] },
+ *   { id: 4, name: "Fried Rice", parentIds: [] },
+ *   { id: 5, name: "Fusion Bowl", parentIds: [1, 2] }
+ * ]
+ * ```
+ */
+export async function getRecipeMergeHistory(id: number): Errorable<{
+    history: {
+        id: number,
+        name: string,
+        parentIds: number[]
+    }[]
+}> {
+    try {
+        const nodes = await sql`
+            WITH RECURSIVE RecipeHistory AS (
+                SELECT r.id, r.name FROM Recipe WHERE id = ${id}
+                UNION
+                SELECT r.id, r.name FROM RecipeLink rl
+                JOIN RecipeHistory rh ON rl.childId = rh.id
+                JOIN Recipe r ON rl.parentId = r.id
+            )
+            SELECT
+            rh.id, rh.name,
+            COALESCE(
+                jsonb_agg(rl.parentId) FILTER (WHERE rl.parentId IS NOT NULL),
+                '[]'::jsonb
+            ) AS parentIds
+            FROM RecipeHistory rh
+            LEFT JOIN RecipeLink rl ON rh.id = rl.childId
+            GROUP BY rh.id, rh.name
+        ` as { id: number, name: string, parentIds: number[] }[];
+
+        if (nodes.length === 0) return { error: 'not-found' };
+        return { history: nodes }
+    } catch (e) {
+        console.error('Error fetching recipe merge history:', e);
+        return { error: 'server-error' };
+    }
+}
+
+/**
+ * Searches for recipes by title.
+ * @param query - The search query to match against recipe titles
+ * @returns An object with either:
+ *          { recipes: Recipe[] } containing the matching recipes if successful, or
+ *          { error: 'server-error' } if an error occurs.
+ */
+export async function searchRecipes(query: string): Errorable<{ recipes: Recipe[] }> {
+    try {
+        const recipes = await sql`
+            SELECT r.*, u.username as authorName,
+                   COUNT(rl.userId) as likeCount
+            FROM Recipe r
+            LEFT JOIN AppUser u ON r.authorId = u.id
+            LEFT JOIN RecipeLike rl ON r.id = rl.recipeId
+            WHERE LOWER(r.name) LIKE LOWER(${'%' + query + '%'})
+            GROUP BY r.id, u.username
+            ORDER BY likeCount DESC, r.name ASC
+            LIMIT ${MAX_SEARCH_LIMIT}
+        `;
+        
+        return { recipes: recipes as Recipe[] };
+    } catch (e) {
+        console.error('Error searching recipes:', e);
+        return { error: 'server-error' };
+    }
+}
+
 export interface Recipe {
   id: number;
-  title: string;
   name: string;
   description: string;
   ingredients: string;
@@ -266,4 +367,5 @@ export interface Recipe {
   likeCount: number;
   authorId: number;
   authorName: string; // this now maps to u.username
+  difficulty: 'Easy' | 'Medium' | 'Hard' | null | string;
 };
