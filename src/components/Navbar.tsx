@@ -86,9 +86,9 @@ export default function Navbar() {
                                     >
                                         Trending Recipes
                                     </Link>
-                                    <div className="relative group">
+                                    <div className="relative self-center group">
                                         <button 
-                                            className={`inline-flex items-center px-2 pt-1 border-b-2 text-sm font-medium transition-all duration-200 ${
+                                            className={`inline-flex content-center items-center px-2 pt-1 border-b-2 text-sm font-medium transition-all duration-200 ${
                                                 isActive('/myrecipies')
                                                     ? 'border-indigo-500 text-gray-900 font-semibold'
                                                     : 'border-transparent text-gray-500 hover:border-indigo-200 hover:text-gray-700'
@@ -112,10 +112,10 @@ export default function Navbar() {
                                         </button>
                                         
                                         {/* My Recipes Dropdown menu */}
-                                        <div className="absolute left-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden group-hover:block">
+                                        <div className="absolute self-center left-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden group-hover:block">
                                             <Link
                                                 href="/myrecipies"
-                                                className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+                                                className="flex content-center items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -420,9 +420,9 @@ export default function Navbar() {
                                     </svg>
                                     Trending Recipes
                                 </Link>
-                                <div className="relative group">
+                                <div className="relative self-center group">
                                     <button 
-                                        className={`flex items-center gap-2 pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-200 ${
+                                        className={`flex items-center content-center gap-2 pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-200 ${
                                             isActive('/myrecipies')
                                                 ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
                                                 : 'border-transparent text-gray-500 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600'
@@ -449,7 +449,7 @@ export default function Navbar() {
                                     <div className="absolute left-0 mt-1 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden group-hover:block">
                                         <Link
                                             href="/myrecipies"
-                                            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+                                            className="flex content-center items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />

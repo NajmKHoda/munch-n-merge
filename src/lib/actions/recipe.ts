@@ -358,6 +358,29 @@ export async function searchRecipes(query: string): Errorable<{ recipes: Recipe[
     }
 }
 
+/**
+ * Retrieves multiple recipes by their IDs.
+ * @param ids - Array of recipe IDs to retrieve.
+ * @returns An object with either:
+ *          { recipes: Recipe[] } containing the requested recipes if found, or
+ *          { error: 'server-error' } if an error occurs.
+ */
+export async function getRecipesByIds(ids: number[]): Errorable<{ recipes: Recipe[] }> {
+    try {
+        const recipes = await sql`
+            SELECT r.*, u.username as authorName 
+            FROM RecipeWithLikes r
+            JOIN AppUser u ON r.authorId = u.id
+            WHERE r.id = ANY(${ids})
+            ORDER BY r.likeCount DESC, r.createdAt DESC
+        `;
+        return { recipes: recipes as Recipe[] };
+    } catch (e) {
+        console.error('Error fetching recipes:', e);
+        return { error: 'server-error' };
+    }
+}
+
 export interface Recipe {
   id: number;
   name: string;
