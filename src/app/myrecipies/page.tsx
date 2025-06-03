@@ -25,10 +25,17 @@ export default function RecipesPage() {
                 const response = await getUserRecipes();
                 if ('error' in response) throw new Error('Failed to fetch recipes');
                 setRecipes(response.recipes!.map(recipe => ({
-                    ...recipe,
-                    ingredients: typeof recipe.ingredients === 'string' 
-                        ? JSON.parse(recipe.ingredients) 
-                        : recipe.ingredients
+                    id: recipe.id,
+                    name: recipe.name,
+                    description: recipe.description,
+                    instructions: recipe.instructions ?? '',
+                    ingredients: typeof recipe.ingredients === 'string'
+                        ? JSON.parse(recipe.ingredients)
+                        : recipe.ingredients,
+                    authorId: recipe.authorId,
+                    authorName: recipe.authorname,
+                    likeCount: recipe.likecount ?? 0,
+                    difficulty: recipe.difficulty ?? null,
                 })));
 
                 // Handle newly merged recipe
@@ -130,8 +137,8 @@ export default function RecipesPage() {
                                 ? JSON.parse(newRecipe.recipe.ingredients)
                                 : newRecipe.recipe.ingredients,
                             authorId: newRecipe.recipe.authorId,
-                            authorName: newRecipe.recipe.authorName,
-                            likeCount: newRecipe.recipe.likeCount ?? 0,
+                            authorName: newRecipe.recipe.authorname,
+                            likeCount: newRecipe.recipe.likecount ?? 0,
                         };
                         setRecipes(prevRecipes => [...prevRecipes, localRecipe]);
                         resetForm();
@@ -183,8 +190,8 @@ export default function RecipesPage() {
                         ? JSON.parse(updatedRecipe.recipe.ingredients)
                         : updatedRecipe.recipe.ingredients,
                     authorId: updatedRecipe.recipe.authorId,
-                    authorName: updatedRecipe.recipe.authorName,
-                    likeCount: updatedRecipe.recipe.likeCount ?? 0,
+                    authorName: updatedRecipe.recipe.authorname,
+                    likeCount: updatedRecipe.recipe.likecount ?? 0,
                 };
                 setRecipes(prevRecipes => prevRecipes.map(r => r.id === selectedRecipe.id ? recipe : r));
                 resetForm();

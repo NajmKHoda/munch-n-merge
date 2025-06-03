@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
 import { useUser } from '@/lib/context/UserContext';
-import { debounce } from '@mui/material';
 
 interface Suggestion {
     id: number;

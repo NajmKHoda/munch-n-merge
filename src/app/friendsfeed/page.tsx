@@ -119,7 +119,7 @@ export default function FeedPage() {
     if (!recipeToUpdate) return;
     
     // Get current like count as a number
-    const currentLikeCount = Number((recipeToUpdate as any).likecount || recipeToUpdate.likeCount || 0);
+    const currentLikeCount = Number((recipeToUpdate as any).likecount || recipeToUpdate.likecount || 0);
     
     if (likes[id]) {
       // Immediately update UI for better user experience
@@ -243,7 +243,7 @@ export default function FeedPage() {
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <div className="flex items-center">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold">
-                  <img src="/images/IconForWebsite.png" alt={recipe.authorName} className="w-10 h-10 ml-2 rounded-full" />
+                  <img src="/images/IconForWebsite.png" alt={recipe.authorname} className="w-10 h-10 ml-2 rounded-full" />
                 </div>
                 <div className="ml-3">
                   <p className="font-medium text-gray-800">Chef #{(recipe as any).authorname || recipe.authorId}</p>
@@ -271,7 +271,7 @@ export default function FeedPage() {
                     />
                   </svg>
                   <span className="text-sm w-5 text-center">
-                    {Number((recipe as any).likecount || recipe.likeCount || 0)}
+                    {Number((recipe as any).likecount || recipe.likecount || 0)}
                   </span>
                 </button>
 

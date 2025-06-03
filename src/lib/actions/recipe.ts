@@ -388,8 +388,8 @@ export interface Recipe {
   ingredients: string;
   instructions: string;
   createdAt: Date;
-  likeCount: number;
+  likecount: number;  // Changed from likeCount to likecount
   authorId: number;
-  authorName: string; // this now maps to u.username
+  authorname: string; // Changed from authorName to authorname
   difficulty: 'Easy' | 'Medium' | 'Hard' | null | string;
 };

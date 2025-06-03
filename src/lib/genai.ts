@@ -1,4 +1,4 @@
-import { GoogleGenAI, Z, Type } from '@google/genai';
+import { GoogleGenAI, Type } from '@google/genai';
 import { Recipe } from './actions/recipe';
 
 export const genAI = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY });
@@ -17,7 +17,7 @@ export async function generateMergedRecipe(recipes: Recipe[], temperature?: numb
                 a clear, numbered order separated by newlines.
 
                 Also assign a difficulty level: "Easy", "Medium", or "Hard" based on the complexity of ingredients and steps.
-
+                If there are no steps or ingredients provided please make them up based on real recipies in the rightful fields based on the name.
                 Input:
                 [
                     {
@@ -94,7 +94,6 @@ export async function generateMergedRecipe(recipes: Recipe[], temperature?: numb
                 }
             }
         });
-        console.log('Response from Gemini:', response.text);
         if (!response.text) return null;
 
         const geminiRecipe: GeminiMergedRecipe = JSON.parse(response.text);
