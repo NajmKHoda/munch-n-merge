@@ -66,12 +66,14 @@ export default function TrendingPage() {
         setFavorites(favoritesMap);
       }
     } catch (error) {
+        console.error(error);
     }
   };
 
   useEffect(() => {
     loadRecipes();
     loadUserLikes();
+    loadUserFavorites();
   }, []);
 
   const handleLoadMore = () => {
