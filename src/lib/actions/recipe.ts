@@ -368,7 +368,7 @@ export async function searchRecipes(query: string): Errorable<{ recipes: Recipe[
 export async function getRecipesByIds(ids: number[]): Errorable<{ recipes: Recipe[] }> {
     try {
         const recipes = await sql`
-            SELECT r.*, u.username as authorName 
+            SELECT r.*, u.username as authorName, u.id as authorId, u.profile_picture as authorProfilePicture
             FROM RecipeWithLikes r
             JOIN AppUser u ON r.authorId = u.id
             WHERE r.id = ANY(${ids})

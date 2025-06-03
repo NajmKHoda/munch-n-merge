@@ -54,4 +54,41 @@ export async function updatePassword(currentPassword: string, newPassword: strin
     } catch (e) {
         return 'server-error';
     }
+}
+
+export async function getUserProfile() {
+    try {
+        const user = await getUser();
+        if (!user) return null;
+        const result = await sql`SELECT id, username, email, bio, profile_picture FROM AppUser WHERE id = ${user.id}`;
+        return result[0];
+    } catch (e) {
+        return null;
+    }
+}
+
+export async function updateUserProfile({ bio, profilePicture }: { bio?: string; profilePicture?: string }) {
+    try {
+        const user = await getUser();
+        if (!user) return 'not-logged-in';
+        if (bio !== undefined) {
+            await sql`UPDATE AppUser SET bio = ${bio} WHERE id = ${user.id}`;
+        }
+        if (profilePicture !== undefined) {
+            await sql`UPDATE AppUser SET profile_picture = ${profilePicture} WHERE id = ${user.id}`;
+        }
+        return 'success';
+    } catch (e) {
+        return 'server-error';
+    }
+}
+
+export async function getPublicUserProfile(userId: number) {
+    try {
+        const result = await sql`SELECT id, username, bio, profile_picture, email FROM AppUser WHERE id = ${userId}`;
+        if (result.length === 0) return null;
+        return result[0];
+    } catch (e) {
+        return null;
+    }
 } 

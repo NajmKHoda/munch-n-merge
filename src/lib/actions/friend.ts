@@ -293,3 +293,17 @@ export async function getFriendStatus(userId: number): Errorable<{
         return { error: 'server-error' };
     }
 }
+
+export async function getFriendCount(userId: number): Promise<number> {
+    try {
+        const result = await sql`
+            SELECT COUNT(*) as count FROM (
+                SELECT id2 as friendId FROM Friend WHERE id1 = ${userId}
+                UNION
+                SELECT id1 as friendId FROM Friend WHERE id2 = ${userId}
+            ) AS friends`;
+        return Number(result[0]?.count || 0);
+    } catch (e) {
+        return 0;
+    }
+}
