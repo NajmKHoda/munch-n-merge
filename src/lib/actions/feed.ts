@@ -11,6 +11,7 @@ const MAX_FEED_DEPTH = 5;
 
 export interface TrendingItem extends Recipe {
     likeCount: number;
+    authorName: string;
 }
 
 export async function getTrendingRecipes(
@@ -18,12 +19,12 @@ export async function getTrendingRecipes(
     offset: number = 0
 ): Promise<TrendingItem[]> {
     return await sql`
-        SELECT *
-        FROM RecipeWithLikes
-        ORDER BY likeCount DESC, createdAt DESC
+        SELECT r.*, u.username AS "authorName"
+        FROM RecipeWithLikes r
+        JOIN AppUser u ON u.id = r.authorid
+        ORDER BY r.likecount DESC, r.createdAt DESC
         LIMIT ${limit} OFFSET ${offset}
         ` as TrendingItem[];
-        
 }
 
 export async function getFriendsFeed(

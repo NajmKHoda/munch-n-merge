@@ -226,7 +226,7 @@ export default function FeedPage() {
 
   return (
     <div className="container mx-auto p-4 max-w-2xl">
-      <h1 className="text-3xl font-bold mb-6 text-indigo-800">Recipe Feed</h1>
+      <h1 className="text-3xl font-bold mb-6 text-indigo-800">Friends Feed</h1>
       
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
