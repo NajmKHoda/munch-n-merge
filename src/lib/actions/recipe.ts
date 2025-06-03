@@ -392,4 +392,5 @@ export interface Recipe {
   authorId: number;
   authorname: string; // Changed from authorName to authorname
   difficulty: 'Easy' | 'Medium' | 'Hard' | null | string;
+  authorProfilePicture?: string | null;
 };

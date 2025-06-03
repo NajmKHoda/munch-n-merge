@@ -245,17 +245,22 @@ export default function FeedPage() {
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <div className="flex items-center">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold">
-                  <Image
-                    src={(recipe as any).authorProfilePicture || DEFAULT_PROFILE_PIC}
-                    alt={recipe.authorname + ' profile picture'}
-                    width={36}
-                    height={36}
-                    className="rounded-full border border-neutral-200 bg-white"
+                  <img
+                    src={
+                      (recipe as any).authorProfilePicture ||
+                      (recipe as any).authorprofilepicture ||
+                      DEFAULT_PROFILE_PIC
+                    }
+                    alt={
+                      ((recipe as any).authorName || (recipe as any).authorname) +
+                      ' profile picture'
+                    }
+                    className="w-10 h-10 rounded-full border border-neutral-200 bg-white"
                   />
                 </div>
                 <div className="ml-3">
                   <Link
-                    href={`/user/${recipe.authorid}`}
+                    href={`/user/${recipe.authorId}`}
                     className="font-semibold text-indigo-700 hover:underline"
                   >
                     Chef #{recipe.authorname}
