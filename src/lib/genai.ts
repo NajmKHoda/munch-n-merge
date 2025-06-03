@@ -17,7 +17,8 @@ export async function generateMergedRecipe(recipes: Recipe[], temperature?: numb
                 a clear, numbered order separated by newlines.
 
                 Also assign a difficulty level: "Easy", "Medium", or "Hard" based on the complexity of ingredients and steps.
-                If there are no steps or ingredients provided please make them up based on real recipies in the rightful fields based on the name.
+                If there are no steps or ingredients provided please make them up based on real recipies in the rightful fields based on the name. The title should be something good creative not basic weird and based on the temperature.
+                Please Make the title of the new recipie really good.
                 Input:
                 [
                     {
