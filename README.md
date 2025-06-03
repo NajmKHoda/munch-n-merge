@@ -63,22 +63,51 @@ Munch-n-Merge is a  recipe social media platform that allows users to create the
    yarn install
    ```
 
-2. **Set up environment variables**
-   Create a `.env` file in the root directory with the following variables:
-   ```
-   # Database Connection (REQUIRED)
-   # We use Neon PostgreSQL for the database
-   NEON_DATABASE_URL="your-neon-postgres-connection-string"
+2. **Database Setup (Neon PostgreSQL)**
    
-   # Authentication (REQUIRED)
-   # Used for JWT token signing and verification
-   SESSION_SECRET="your-secure-random-string"
+   Follow these steps to set up your database:
    
-   # Google Gemini API (REQUIRED for recipe merging)
-   # Used for AI-powered recipe merging functionality
-   GOOGLE_GENAI_API_KEY="your-google-gemini-api-key"
-   ```
+   a. **Create a Neon Account and Project**
+      - Go to [https://neon.tech](https://neon.tech) and sign up or log in
+      - Click "New Project" in your dashboard
+      - Fill in requested details (project/database name, server region, etc.)
+      - Click "Create Project"
    
+   b. **Obtain Your Database Connection String**
+      - Once your project is created, you'll be taken to the project dashboard
+      - Click the "Connect" button and select the .env tab to view the connection URL.
+      - It should look like: `postgresql://username:password@hostname/database?sslmode=require`
+   
+   c. **Set Up Environment Variables**
+      Create a `.env` file in the root directory with the following variables:
+      ```
+      # Database Connection (REQUIRED)
+      # Replace with your actual Neon PostgreSQL connection string
+      NEON_DATABASE_URL="postgresql://username:password@hostname/database?sslmode=require"
+      
+      # Authentication (REQUIRED)
+      # Generate a secure random string for JWT token signing
+      SESSION_SECRET="your-secure-random-string"
+      
+      # Google Gemini API (REQUIRED for recipe merging)
+      # Get this from Google Cloud Console with Gemini API enabled
+      GOOGLE_GENAI_API_KEY="your-google-gemini-api-key"
+      ```
+   
+   d. **Initialize the Database Schema**
+      Run the database initialization script to create all required tables:
+      ```bash
+      npm run db:init
+      ```
+      
+      This script will:
+      - Connect to your Neon database using the connection string
+      - Create all necessary tables (AppUser, Recipe, Friend, Session, etc.)
+      - Set up proper relationships and constraints
+      - Display success confirmation when complete
+      
+      **Note**: Make sure your `NEON_DATABASE_URL` is correctly set in the `.env` file before running this command.
+
 3. **Start the development server**
    ```bash
    npm run dev
@@ -281,11 +310,29 @@ The application uses Next.js Server Actions for data operations. Key endpoints i
 ## Troubleshooting
 
 ### Common Issues
-1. **Database Connection Errors**:
-   - Verify your database credentials in `.env.local`
-   - Ensure your database server is running
 
-2. **Authentication Issues**:
+1. **Database Connection Errors**:
+   - **Issue**: `NEON_DATABASE_URL environment variable is not set`
+     - **Solution**: Ensure you have a `.env` file in the root directory with the correct `NEON_DATABASE_URL`
+   - **Issue**: `Connection failed` or `Invalid connection string`
+     - **Solution**: Double-check your Neon connection string format and credentials
+     - Ensure your Neon project is active (not suspended due to inactivity)
+   - **Issue**: `Database initialization failed`
+     - **Solution**: Run `npm run db:init` to set up the database schema
+     - Check that your database user has sufficient permissions to create tables
+
+2. **Database Setup Issues**:
+   - **Issue**: `npm run db:init` fails
+     - **Solution**: 
+       - Verify your `NEON_DATABASE_URL` is correct in the `.env` file
+       - Ensure your Neon database is accessible and not suspended
+       - Check your internet connection
+   - **Issue**: Tables already exist errors
+     - **Solution**: The init script uses `CREATE TABLE IF NOT EXISTS`, so this shouldn't occur. If it does, you may need to drop existing tables first
+   - **Issue**: Permission denied errors
+     - **Solution**: Ensure your Neon database user has CREATE privileges
+
+3. **Authentication Issues**:
    - Clear browser cookies and try logging in again
    - Verify JWT_SECRET in environment variables
 
