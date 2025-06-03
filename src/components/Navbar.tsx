@@ -1,14 +1,23 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
 import { useUser } from '@/lib/context/UserContext';
+import { debounce } from '@mui/material';
+
+interface Suggestion {
+    id: number;
+    name: string;
+}  
 
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isRecipesDropdownOpen, setIsRecipesDropdownOpen] = useState(false);
@@ -16,6 +25,8 @@ export default function Navbar() {
     const router = useRouter();
     const { user, refreshUser } = useUser();
     const [isLoading, setIsLoading] = useState(true);
+
+    const debounceRef = useRef<NodeJS.Timeout | null>(null);
     
     const handleLogout = async () => {
         await logout();
@@ -29,12 +40,65 @@ export default function Navbar() {
         e.preventDefault();
         if (searchQuery.trim()) {
             router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-            setIsSearchOpen(false);
             setSearchQuery('');
+            setSuggestions([]);
+            setShowSuggestions(false);
         }
     };
 
     // Add click outside handler for both dropdowns
+    useEffect(() => {
+        if (debounceRef.current) {
+            clearTimeout(debounceRef.current);
+        }
+
+        const q = searchQuery.trim();
+        if (q.length === 0) {
+            setSuggestions([]);
+            setShowSuggestions(false);
+            return;
+        }
+
+        debounceRef.current = setTimeout(async () => {
+            setIsSearching(true);
+            try {
+                const res = await fetch(`/api/searchSuggestions?q=${encodeURIComponent(q)}`);
+                if (!res.ok) {
+                    setSuggestions([]);
+                    setShowSuggestions(false);
+                    setIsSearching(false);
+                    return;
+                }
+                const data: { suggestions: Suggestion[] } = await res.json();
+                setSuggestions(data.suggestions);
+                setShowSuggestions(data.suggestions.length > 0);   
+            } catch (err) {
+                console.error('Error fetching search suggestions:', err);
+                setSuggestions([]);
+                setShowSuggestions(false);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 200);
+
+        return () => {
+            if (debounceRef.current) {
+                clearTimeout(debounceRef.current);
+            }
+        };
+    }, [searchQuery]);
+
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+                setShowSuggestions(false);
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [wrapperRef]);
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             const target = event.target as HTMLElement;
@@ -183,15 +247,28 @@ export default function Navbar() {
                             )} */}
 
                             {/* Replace Search Recipes dropdown with inline search bar */}
-                            <div className="relative">
-                                <form onSubmit={handleSearch} className="flex items-center">
+                            <div className="relative" ref={wrapperRef}>
+                                <form onSubmit={handleSearch} className="flex items-center" autoComplete="off">
                                     <div className="relative">
                                         <input
                                             type="text"
                                             className="w-64 px-4 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 placeholder-gray-400"
                                             placeholder="Search recipes..."
                                             value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            onChange={(e) => {
+                                                setSearchQuery(e.target.value);
+                                                // only show suggestions once user starts typing
+                                                if (e.target.value.trim().length > 0) {
+                                                    setShowSuggestions(true);
+                                                } else {
+                                                    setShowSuggestions(false);
+                                                }
+                                            }}
+                                            onFocus={() => {
+                                                if (searchQuery.trim().length > 0) {
+                                                    setShowSuggestions(true);
+                                                }
+                                            }}
                                         />
                                         <button
                                             type="submit"
@@ -203,6 +280,36 @@ export default function Navbar() {
                                         </button>
                                     </div>
                                 </form>
+                                {showSuggestions && (
+                                    <ul className="absolute z-20 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+                                        {isSearching && (
+                                        <li className="px-4 py-2 text-gray-500 italic text-sm">
+                                            Loading…
+                                        </li>
+                                        )}
+                                        {!isSearching && suggestions.length === 0 && (
+                                        <li className="px-4 py-2 text-gray-500 italic text-sm">
+                                            No matches
+                                        </li>
+                                        )}
+                                        {!isSearching &&
+                                        suggestions.map((sugg) => (
+                                            <li
+                                            key={sugg.id}
+                                            className="px-4 py-2 hover:bg-indigo-50 cursor-pointer"
+                                            onClick={() => {
+                                                // When user clicks a suggestion, navigate to that recipe page:
+                                                router.push(`/recipes/${sugg.id}`);
+                                                setSearchQuery('');
+                                                setSuggestions([]);
+                                                setShowSuggestions(false);
+                                            }}
+                                            >
+                                            {sugg.name}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
                             </div>
                         </div>
                     </div>
