@@ -299,7 +299,7 @@ export default function Navbar() {
                                             className="px-4 py-2 hover:bg-indigo-50 cursor-pointer"
                                             onClick={() => {
                                                 // When user clicks a suggestion, navigate to that recipe page:
-                                                router.push(`/recipes/${sugg.id}`);
+                                                router.push(`/recipe/${sugg.id}`);
                                                 setSearchQuery('');
                                                 setSuggestions([]);
                                                 setShowSuggestions(false);
