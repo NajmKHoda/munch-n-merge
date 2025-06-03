@@ -1,5 +1,6 @@
 "use server";
 
+import { NEXT_CACHE_REVALIDATE_TAG_TOKEN_HEADER } from 'next/dist/lib/constants';
 import { sql } from '../sql';
 import { getUser } from './auth';
 import { Recipe } from './recipe';
@@ -8,7 +9,25 @@ import { Errorable } from './types';
 const MAX_FEED_LIMIT = 100;
 const MAX_FEED_DEPTH = 5;
 
-export async function getRecipeFeed(
+export interface TrendingItem extends Recipe {
+    likeCount: number;
+    authorName: string;
+}
+
+export async function getTrendingRecipes(
+    limit: number,
+    offset: number = 0
+): Promise<TrendingItem[]> {
+    return await sql`
+        SELECT r.*, u.username AS "authorName"
+        FROM RecipeWithLikes r
+        JOIN AppUser u ON u.id = r.authorid
+        ORDER BY r.likecount DESC, r.createdAt DESC
+        LIMIT ${limit} OFFSET ${offset}
+        ` as TrendingItem[];
+}
+
+export async function getFriendsFeed(
     depth: number,
     afterDate: Date,
     limit: number,

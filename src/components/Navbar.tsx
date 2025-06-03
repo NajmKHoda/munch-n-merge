@@ -81,14 +81,24 @@ export default function Navbar() {
                             {user && (
                                 <>
                                     <Link
-                                        href="/feed"
+                                        href="/friendsfeed"
                                         className={`inline-flex items-center px-2 pt-1 border-b-2 text-sm font-medium transition-all duration-200 ${
-                                            isActive('/feed')
+                                            isActive('/friendsfeed')
                                                 ? 'border-indigo-500 text-gray-900 font-semibold'
                                                 : 'border-transparent text-gray-500 hover:border-indigo-200 hover:text-gray-700'
                                         }`}
                                     >
-                                        Feed
+                                        Friends Feed
+                                    </Link>
+                                    <Link
+                                        href="/trending"
+                                        className={`inline-flex items-center px-2 pt-1 border-b-2 text-sm font-medium transition-all duration-200 ${
+                                            isActive('/trending')
+                                                ? 'border-indigo-500 text-gray-900 font-semibold'
+                                                : 'border-transparent text-gray-500 hover:border-indigo-200 hover:text-gray-700'
+                                        }`}
+                                    >
+                                        Trending Recipes
                                     </Link>
                                     <div className="relative self-center group">
                                         <button 
@@ -402,9 +412,9 @@ export default function Navbar() {
                         {user && (
                             <>
                                 <Link
-                                    href="/feed"
+                                    href="/friendsfeed"
                                     className={`flex items-center gap-2 pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-200 ${
-                                        isActive('/feed')
+                                        isActive('/friendsfeed')
                                             ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
                                             : 'border-transparent text-gray-500 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600'
                                     }`}
@@ -413,7 +423,21 @@ export default function Navbar() {
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                     </svg>
-                                    Feed
+                                    Friends Feed
+                                </Link>
+                                <Link
+                                    href="/trending"
+                                    className={`flex items-center gap-2 pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-200 ${
+                                        isActive('/trending')
+                                            ? 'bg-indigo-50 border-indigo-500 text-indigo-700'
+                                            : 'border-transparent text-gray-500 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600'
+                                    }`}
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                    </svg>
+                                    Trending Recipes
                                 </Link>
                                 <div className="relative self-center group">
                                     <button 

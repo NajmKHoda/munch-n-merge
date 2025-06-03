@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from '@google/genai';
+import { GoogleGenAI, Z, Type } from '@google/genai';
 import { Recipe } from './actions/recipe';
 
 export const genAI = new GoogleGenAI({ apiKey: process.env.GOOGLE_GENAI_API_KEY });
