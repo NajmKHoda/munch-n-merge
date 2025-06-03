@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getFriendsFeed } from '@/lib/actions/feed';
 import { likeRecipe, unlikeRecipe, getUserLikes } from '@/lib/actions/like';
 import { addFavorite, removeFavorite, getUserFavorites } from '@/lib/actions/favorite';
@@ -9,6 +10,7 @@ import { Recipe } from '@/lib/actions/recipe';
 
 const ITEMS_PER_PAGE = 10;
 const NETWORK_DEPTH = 3; // Get recipes from friends of friends of friends
+const DEFAULT_PROFILE_PIC = '/images/IconForWebsite.png';
 
 export default function FeedPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -243,10 +245,21 @@ export default function FeedPage() {
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <div className="flex items-center">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold">
-                  <img src="/images/IconForWebsite.png" alt={recipe.authorname} className="w-10 h-10 ml-2 rounded-full" />
+                  <Image
+                    src={(recipe as any).authorProfilePicture || DEFAULT_PROFILE_PIC}
+                    alt={recipe.authorname + ' profile picture'}
+                    width={36}
+                    height={36}
+                    className="rounded-full border border-neutral-200 bg-white"
+                  />
                 </div>
                 <div className="ml-3">
-                  <p className="font-medium text-gray-800">Chef #{(recipe as any).authorname || recipe.authorId}</p>
+                  <Link
+                    href={`/user/${recipe.authorid}`}
+                    className="font-semibold text-indigo-700 hover:underline"
+                  >
+                    Chef #{recipe.authorname}
+                  </Link>
                 </div>
               </div>
               

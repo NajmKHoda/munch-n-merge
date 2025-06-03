@@ -7,6 +7,9 @@ import { likeRecipe, unlikeRecipe, getUserLikes } from '@/lib/actions/like';
 import { addFavorite, removeFavorite } from '@/lib/actions/favorite';
 import { Recipe } from '@/lib/actions/recipe';
 import { getRecipesByIds } from '@/lib/actions/recipe';
+import Image from 'next/image';
+
+const DEFAULT_PROFILE_PIC = '/images/IconForWebsite.png';
 
 export default function FavoritesPage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -222,13 +225,20 @@ export default function FavoritesPage() {
             
             {/* Recipe author header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
-              <div className="flex items-center">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold">
-                    <img src="/images/IconForWebsite.png" alt={recipe.authorname} className="w-10 h-10 ml-2 rounded-full" />
-                    </div>
-                    <div className="ml-3">
-                    <p className="font-medium text-gray-800">Chef #{(recipe as any).authorname || recipe.authorId}</p>
-                    </div>
+              <div className="flex items-center gap-2 mb-2">
+                <Image
+                  src={(recipe as any).authorProfilePicture || (recipe as any).authorprofilepicture || DEFAULT_PROFILE_PIC}
+                  alt={((recipe as any).authorName || (recipe as any).authorname) + ' profile picture'}
+                  width={36}
+                  height={36}
+                  className="rounded-full border border-neutral-200 bg-white"
+                />
+                <Link
+                  href={`/user/${recipe.authorid}`}
+                  className="font-semibold text-indigo-700 hover:underline"
+                >
+                  Chef #{(recipe as any).authorName || (recipe as any).authorname}
+                </Link>
               </div>
               
               <div className="flex items-center">

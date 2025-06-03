@@ -212,10 +212,19 @@ return (
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <div className="flex items-center">
                 <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold">
-                  <img src="/images/IconForWebsite.png" alt={recipe.authorName} className="w-10 h-10 ml-2 rounded-full" />
+                  <img
+                    src={recipe.authorProfilePicture || '/images/IconForWebsite.png'}
+                    alt={recipe.authorName + ' profile picture'}
+                    className="w-10 h-10 rounded-full border border-neutral-200 bg-white"
+                  />
                 </div>
                 <div className="ml-3">
-                  <p className="font-medium text-gray-800">Chef #{recipe.authorName}</p>
+                  <Link
+                    href={`/user/${recipe.authorId}`}
+                    className="font-semibold text-indigo-700 hover:underline"
+                  >
+                    Chef #{recipe.authorName}
+                  </Link>
                 </div>
               </div>
               
