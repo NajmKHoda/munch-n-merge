@@ -59,12 +59,12 @@ export default function RecipeSelectionCard({
           </button>
           
           {showIngredients && (
-            <div className="bg-indigo-50 p-2 rounded-md border border-indigo-100 mb-2" onClick={e => e.stopPropagation()}>
-              <ul className="grid grid-cols-1 md:grid-cols-2 gap-0.5 text-sm">
+            <div className="bg-indigo-50 p-3 rounded-md border border-indigo-100 mb-2" onClick={e => e.stopPropagation()}>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                 {Object.entries(recipe.ingredients).map(([ingredient, quantity]) => (
-                  <li key={ingredient} className="flex items-center text-gray-700 py-0.5">
-                    <span className="font-medium">{ingredient}:</span>
-                    <span className="text-gray-600 ml-1">{quantity}</span>
+                  <li key={ingredient} className="flex items-center bg-white p-2 rounded-md shadow-sm border border-indigo-50">
+                    <span className="font-medium text-indigo-700 mr-2">{ingredient}:</span>
+                    <span className="text-gray-700">{quantity}</span>
                   </li>
                 ))}
               </ul>
@@ -78,7 +78,7 @@ export default function RecipeSelectionCard({
           </p>
           {isExternal && (
             <p className="text-xs text-gray-500 mt-1">
-              Recipe by {recipe.authorName || `Chef #${recipe.authorName}`}
+              Recipe by {recipe.authorname || `Chef #${recipe.authorname}`}
             </p>
           )}
         </div>
