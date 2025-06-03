@@ -6,20 +6,21 @@ Munch-n-Merge is a  recipe social media platform that allows users to create the
 ## Technologies Used
 
 - **Frontend**:
-  - Next.js 13/14 with App Router
-  - React 18
+  - Next.js 15 with App Router
+  - React 19
   - TypeScript
   - Tailwind CSS for styling
-  - Server Components & Client Components
+  - Server/Client Component architecture
 
 - **Backend**:
   - Next.js API Routes
   - Server Actions for data mutation
-  - SQL database with prepared statements
+  - Neon PostgreSQL database with prepared statements
 
 - **Authentication**:
   - Session-based authentication
-  - Secure password storage
+  - Secure password storage using `bcrypt`
+  - Session token encryption with **JSON Web Tokens**
 
 - **Features**:
   - AI-powered recipe merging
@@ -56,21 +57,15 @@ Munch-n-Merge is a  recipe social media platform that allows users to create the
 
 ### Local Development Setup
 
-1. **Clone the repository**
-   ```bash
-   git clone <your-repository-url>
-   cd munch-n-merge
-   ```
-
-2. **Install dependencies**
+1. **Install dependencies**
    ```bash
    npm install
    # or
    yarn install
    ```
 
-3. **Set up environment variables**
-   Create a `.env.local` file in the root directory with the following variables:
+2. **Set up environment variables**
+   Create a `.env` file in the root directory with the following variables:
    ```
    # Database Connection (REQUIRED)
    # We use Neon PostgreSQL for the database
@@ -85,14 +80,14 @@ Munch-n-Merge is a  recipe social media platform that allows users to create the
    GOOGLE_GENAI_API_KEY="your-google-gemini-api-key"
    ```
    
-4. **Start the development server**
+3. **Start the development server**
    ```bash
    npm run dev
    # or
    yarn dev
    ```
 
-5. **Open your browser** and navigate to `http://localhost:3000`
+4. **Open your browser** and navigate to `http://localhost:3000`
 
 ## Technology Stack Details
 
@@ -116,7 +111,7 @@ The authentication flow works as follows:
 6. Server validates the token and session on each protected request
 
 ### AI Recipe Merging
-The recipe merging feature is powered by **Google's Gemini AI** (gemini-2.0-flash model). We use the `@google/genai` SDK to:
+The recipe merging feature is powered by **Google's Gemini API** (gemini-2.0-flash model). We use the `@google/genai` SDK to:
 
 1. Format and serialize recipes for AI processing
 2. Send them to the Gemini model with custom prompts
@@ -306,7 +301,7 @@ The application uses Next.js Server Actions for data operations. Key endpoints i
 
 ## Contributors
 - Ahmad Wajid
--
--
--
--
+- Najm Hoda
+- Omar Lejmi
+- Adam Omarbasha
+- Abdulrahman Albedawy
