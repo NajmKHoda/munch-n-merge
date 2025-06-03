@@ -366,8 +366,8 @@ export default function FavoritesPage() {
           </svg>
           <p className="text-gray-600 font-medium">No favorite recipes yet</p>
           <p className="text-gray-500 mt-2 text-sm">Start exploring the feed and favorite some recipes!</p>
-          <Link href="/feed" className="mt-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm">
-            Explore Feed
+          <Link href="/trending" className="mt-4 inline-block bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors text-sm">
+            Explore Trending Recipies
           </Link>
         </div>
       )}
