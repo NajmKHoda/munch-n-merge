@@ -28,10 +28,10 @@ export default async function Home() {
                                         View My Recipes
                                     </Link>
                                     <Link
-                                        href="/feed"
+                                        href="/trending"
                                         className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-amber-500 hover:bg-amber-600"
                                     >
-                                        Explore Recipe Feed
+                                        Explore Recipes
                                     </Link>
                                 </div>
                             </div>
