@@ -19,9 +19,13 @@ export async function getTrendingRecipes(
     offset: number = 0
 ): Promise<TrendingItem[]> {
     return await sql`
-        SELECT r.*, u.username AS "authorName"
+        SELECT 
+            r.*, 
+            u.username AS "authorName",
+            base.difficulty
         FROM RecipeWithLikes r
         JOIN AppUser u ON u.id = r.authorid
+        JOIN Recipe base ON base.id = r.id
         ORDER BY r.likecount DESC, r.createdAt DESC
         LIMIT ${limit} OFFSET ${offset}
         ` as TrendingItem[];
