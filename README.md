@@ -1,6 +1,5 @@
 # Munch-n-Merge
 ## Project Overview
-
 Munch-n-Merge is a  recipe social media platform that allows users to create their own recipes, discover recipes from friends within their social network, and use AI to merge recipes together to create new recipe.
 
 ## Technologies Used
@@ -131,8 +130,8 @@ munch-n-merge/
 │   ├── app/           # Next.js App Router pages
 │   │   ├── feed/      # Recipe feed page
 │   │   ├── friends/   # Friend management
-│   │   ├── mergerecipes/ # Recipe merging feature
-│   │   ├── myrecipies/   # User's recipes management
+│   │   ├── merge-recipes/ # Recipe merging feature
+│   │   ├── my-recipes/   # User's recipes management
 │   │   ├── search/    # Search functionality
 │   │   ├── settings/  # User settings
 │   │   └── favorites/ # User's favorite recipes
@@ -146,17 +145,12 @@ munch-n-merge/
 │       │   ├── friend.ts    # Friend management
 │       │   ├── favorite.ts  # Favorites management
 │       │   └── types.ts     # Shared TypeScript interfaces
-│       ├── context/   # React context providers
-│       ├── genai.ts   # Google Gemini AI integration
-│       └── sql.ts     # Database connection utility
+│       ├── contexts/   # React context providers
+│       ├── genai.ts     # Google Gemini AI integration
+│       └── sql.ts        # SQL server initilization
 ├── package.json       # Project dependencies
 └── README.md          # Project documentation
 ```
-
-### Library Organization
-
-Our codebase follows a modular architecture with clear seperation of features:
-
 #### Database Layer (`/lib/sql.ts`)
 - Establishes a connection to our Neon PostgreSQL database using the `@neondatabase/serverless` package
 - Exports a `sql` tagged template function for secure parameterized SQL queries
