@@ -93,6 +93,25 @@ async function calculateLayout(history: MergeHistoryNode[]) {
     return { nodes, edges, graph: g.graph() };
 }
 
+// Helper function to create curved path between two points
+function createCurvedPath(x1: number, y1: number, x2: number, y2: number): string {
+    const dy = y2 - y1;
+    const dx = x2 - x1;
+    
+    // Create S-curve using cubic Bezier with control points
+    const controlOffset = Math.abs(dy) * 0.4; // Adjust curve intensity
+    
+    // First control point - extend down from start point
+    const cp1x = x1;
+    const cp1y = y1 + controlOffset;
+    
+    // Second control point - extend up from end point  
+    const cp2x = x2;
+    const cp2y = y2 - controlOffset;
+    
+    return `M ${x1} ${y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x2} ${y2}`;
+}
+
 export default async function MergeHistoryGraph({ recipeId }: { recipeId: number }) {
     const historyResult = await getRecipeMergeHistory(recipeId);
     
@@ -150,19 +169,6 @@ export default async function MergeHistoryGraph({ recipeId }: { recipeId: number
                                 <stop offset="0%" stopColor="#6366f1" />
                                 <stop offset="100%" stopColor="#4f46e5" />
                             </linearGradient>
-                            <marker
-                                id="arrowhead"
-                                markerWidth="10"
-                                markerHeight="7"
-                                refX="9"
-                                refY="3.5"
-                                orient="auto"
-                            >
-                                <polygon
-                                    points="0 0, 10 3.5, 0 7"
-                                    fill="#6b7280"
-                                />
-                            </marker>
                         </defs>
 
                         {/* Render edges */}
@@ -172,22 +178,21 @@ export default async function MergeHistoryGraph({ recipeId }: { recipeId: number
                             
                             if (!fromNode || !toNode) return null;
 
-                            // Simple straight line from bottom of parent to top of child
+                            // Calculate connection points
                             const x1 = fromNode.x;
                             const y1 = fromNode.y + fromNode.height / 2;
                             const x2 = toNode.x;
                             const y2 = toNode.y - toNode.height / 2;
 
+                            const pathData = createCurvedPath(x1, y1, x2, y2);
+
                             return (
-                                <line
+                                <path
                                     key={index}
-                                    x1={x1}
-                                    y1={y1}
-                                    x2={x2}
-                                    y2={y2}
+                                    d={pathData}
                                     stroke="#6b7280"
                                     strokeWidth="2"
-                                    markerEnd="url(#arrowhead)"
+                                    fill="none"
                                 />
                             );
                         })}
