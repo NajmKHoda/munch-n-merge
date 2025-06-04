@@ -359,25 +359,38 @@ export async function searchRecipes(query: string): Errorable<{ recipes: Recipe[
     }
 }
 
-/**
- * Retrieves multiple recipes by their IDs.
- * @param ids - Array of recipe IDs to retrieve.
- * @returns An object with either:
- *          { recipes: Recipe[] } containing the requested recipes if found, or
- *          { error: 'server-error' } if an error occurs.
- */
+export async function getRecipesByUserId(userId: number): Errorable<{ recipes: Recipe[] }> {
+    try {
+        const recipes = await sql`
+            SELECT r.*, u.username as authorname, u.profile_picture as authorprofilepicture
+            FROM RecipeWithLikes r
+            JOIN AppUser u ON r.authorId = u.id
+            WHERE r.authorId = ${userId}
+            ORDER BY r.createdAt DESC
+        ` as Recipe[];
+
+        return { recipes };
+    } catch (error) {
+        console.error('Error fetching user recipes:', error);
+        return { error: 'server-error' };
+    }
+}
+
 export async function getRecipesByIds(ids: number[]): Errorable<{ recipes: Recipe[] }> {
     try {
         const recipes = await sql`
-            SELECT r.*, u.username as authorName, u.id as authorId, u.profile_picture as authorProfilePicture
+            SELECT 
+                r.*,
+                u.username as authorname,
+                u.profile_picture,
+                u.id as authorId
             FROM RecipeWithLikes r
             JOIN AppUser u ON r.authorId = u.id
             WHERE r.id = ANY(${ids})
-            ORDER BY r.likeCount DESC, r.createdAt DESC
-        `;
-        return { recipes: recipes as Recipe[] };
+        ` as Recipe[];
+        return { recipes };
     } catch (e) {
-        console.error('Error fetching recipes:', e);
+        console.error('Error fetching recipes by ids:', e);
         return { error: 'server-error' };
     }
 }
@@ -389,9 +402,9 @@ export interface Recipe {
   ingredients: string;
   instructions: string;
   createdAt: Date;
-  likecount: number;  // Changed from likeCount to likecount
+  likecount: number;
   authorId: number;
-  authorname: string; // Changed from authorName to authorname
+  authorname: string;
   difficulty: 'Easy' | 'Medium' | 'Hard' | null | string;
-  authorProfilePicture?: string | null;
+  profile_picture?: string | null;
 };

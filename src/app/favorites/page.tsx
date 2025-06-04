@@ -227,8 +227,8 @@ export default function FavoritesPage() {
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <div className="flex items-center gap-2 mb-2">
                 <Image
-                  src={(recipe as any).authorProfilePicture || (recipe as any).authorprofilepicture || DEFAULT_PROFILE_PIC}
-                  alt={((recipe as any).authorName || (recipe as any).authorname) + ' profile picture'}
+                  src={(recipe as any).profile_picture || DEFAULT_PROFILE_PIC}
+                  alt={`${recipe.authorname}'s profile picture`}
                   width={36}
                   height={36}
                   className="rounded-full border border-neutral-200 bg-white"
@@ -237,7 +237,7 @@ export default function FavoritesPage() {
                   href={`/user/${recipe.authorid}`}
                   className="font-semibold text-indigo-700 hover:underline"
                 >
-                  Chef #{(recipe as any).authorName || (recipe as any).authorname}
+                  Chef #{recipe.authorname}
                 </Link>
               </div>
               
