@@ -201,7 +201,7 @@ export default function SearchPage() {
                         <Link
                             key={recipe.id}
                             href={`/recipe/${recipe.id}`}
-                            className="block bg-white rounded-lg border border-gray-200 border-l-4 border-l-purple-500 overflow-hidden hover:shadow-md transition-shadow"
+                            className="block bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
                         >
                             <div className="p-6">
                                 <h2 className="text-xl font-semibold text-gray-900 mb-2">

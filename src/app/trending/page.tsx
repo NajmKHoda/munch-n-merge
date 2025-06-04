@@ -207,8 +207,6 @@ return (
       <div className="space-y-4">
         {recipes.map(recipe => (
           <div key={recipe.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 bg-white">
-            <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
-            
             {/* Recipe author header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <div className="flex items-center">

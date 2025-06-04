@@ -239,9 +239,7 @@ export default function FeedPage() {
       
       <div className="space-y-4">
         {recipes.map(recipe => (
-          <div key={recipe.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 bg-white">
-            <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
-            
+          <div key={recipe.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md bg-white">
             {/* Recipe author header */}
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <div className="flex items-center">
@@ -261,7 +259,7 @@ export default function FeedPage() {
                 </div>
                 <div className="ml-3">
                   <Link
-                    href={`/user/${recipe.authorid}`}
+                    href={`/user/${recipe.authorId}`}
                     className="font-semibold text-indigo-700 hover:underline"
                   >
                     Chef #{recipe.authorname}
