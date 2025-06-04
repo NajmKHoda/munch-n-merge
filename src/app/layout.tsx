@@ -18,6 +18,9 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
     return (
         <html lang="en">
+            <head>
+                <link rel="icon" type="image/png" href="/images/IconForWebsite.png" />
+            </head>
             <body className={inter.className}>
                 <UserProvider>
                     <Navbar />

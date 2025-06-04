@@ -259,7 +259,7 @@ export default function FeedPage() {
                 </div>
                 <div className="ml-3">
                   <Link
-                    href={`/user/${recipe.authorId}`}
+                    href={`/user/${recipe.authorid}`}
                     className="font-semibold text-indigo-700 hover:underline"
                   >
                     Chef #{recipe.authorname}
