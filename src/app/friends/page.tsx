@@ -42,7 +42,6 @@ export default function FriendsPage() {
     loadFriends();
     loadFriendRequests();
   }, []);
-  console.log(user)
   async function loadFriends() {
     setLoading(prev => ({ ...prev, friends: true }));
     const result = await getFriends();
@@ -59,7 +58,6 @@ export default function FriendsPage() {
     setLoading(prev => ({ ...prev, requests: true }));
     const result = await getFriendRequests();
     setLoading(prev => ({ ...prev, requests: false }));
-    console.log(result)
     if ('error' in result) {
       setError(`Error loading friend requests: ${result.error}`);
     } else {
@@ -76,7 +74,6 @@ export default function FriendsPage() {
     
     setLoading(prev => ({ ...prev, search: true }));
     const result = await searchUsers(searchQuery);
-    console.log(result)
     setLoading(prev => ({ ...prev, search: false }));
     
     if ('error' in result) {
