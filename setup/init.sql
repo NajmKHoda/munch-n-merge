@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS AppUser (
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL,
     bio TEXT,
-    profile_picture TEXT
+    profile_picture TEXT,
+    is_public BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE IF NOT EXISTS Session (

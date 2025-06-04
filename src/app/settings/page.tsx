@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { getUser } from '@/lib/actions/auth';
-import { updateUsername, updateEmail, updatePassword } from '@/lib/actions/user';
+import { updateUsername, updateEmail, updatePassword, updatePrivacySetting } from '@/lib/actions/user';
 import Link from 'next/link';
 
 export default function SettingsPage() {
-    const [user, setUser] = useState<{ username: string; email: string } | null>(null);
+    const [user, setUser] = useState<{ username: string; email: string; ispublic?: boolean } | null>(null);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -16,13 +16,15 @@ export default function SettingsPage() {
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [isPublic, setIsPublic] = useState(true);
 
     useEffect(() => {
         getUser().then((userData) => {
             if (userData && 'username' in userData) {
-                setUser(userData as { username: string; email: string });
+                setUser(userData as { username: string; email: string; ispublic?: boolean });
                 setNewUsername(userData.username);
                 setNewEmail(userData.email);
+                setIsPublic(userData.ispublic ?? true);
             }
             setLoading(false);
         });
@@ -154,6 +156,39 @@ export default function SettingsPage() {
             )}
 
             <div className="space-y-8">
+                {/* Privacy Settings Form */}
+                <form className="bg-white p-6 rounded-lg shadow">
+                    <h2 className="text-xl font-semibold mb-4">Privacy Settings</h2>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="font-medium text-gray-900">Public Profile</h3>
+                            <p className="text-sm text-gray-500">When your profile is public, anyone can see your recipes. When private, only friends can see your recipes.</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={async () => {
+                                const result = await updatePrivacySetting(!isPublic);
+                                if (result === 'success') {
+                                    setIsPublic(!isPublic);
+                                    setMessage({ type: 'success', text: 'Privacy settings updated successfully!' });
+                                } else {
+                                    setMessage({ type: 'error', text: 'Failed to update privacy settings.' });
+                                }
+                            }}
+                            className={`${
+                                isPublic ? 'bg-indigo-600' : 'bg-gray-200'
+                            } relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2`}
+                        >
+                            <span
+                                aria-hidden="true"
+                                className={`${
+                                    isPublic ? 'translate-x-5' : 'translate-x-0'
+                                } pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`}
+                            />
+                        </button>
+                    </div>
+                </form>
+
                 {/* Username Update Form */}
                 <form onSubmit={handleUsernameUpdate} className="bg-white p-6 rounded-lg shadow">
                     <h2 className="text-xl font-semibold mb-4">Update Username</h2>

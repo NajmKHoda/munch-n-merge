@@ -102,15 +102,54 @@ export async function updateUserProfile({ bio, profilePicture }: { bio?: string;
 
 export async function getPublicUserProfile(userId: number) {
     try {
+        const currentUser = await getUser();
         const result = await sql`
-            SELECT id, username, bio, profile_picture, email 
+            SELECT id, username, bio, profile_picture, email, ispublic 
             FROM AppUser 
             WHERE id = ${userId}
         `;
         if (result.length === 0) return null;
+
+        // If the profile is private, only return basic info unless it's the user's own profile
+        // or they are friends
+        if (!result[0].ispublic && currentUser?.id !== userId) {
+            const areFriends = await sql`
+                SELECT 1 FROM Friend 
+                WHERE (user1_id = ${currentUser?.id} AND user2_id = ${userId} AND status = 'accepted')
+                OR (user1_id = ${userId} AND user2_id = ${currentUser?.id} AND status = 'accepted')
+            `;
+            
+            if (areFriends.length === 0) {
+                // Return only basic info for private profiles
+                return {
+                    id: result[0].id,
+                    username: result[0].username,
+                    ispublic: result[0].ispublic
+                };
+            }
+        }
+        
         return result[0];
     } catch (e) {
         console.error('Error fetching public user profile:', e);
         return null;
+    }
+}
+
+export async function updatePrivacySetting(isPublic: boolean) {
+    try {
+        const user = await getUser();
+        if (!user) return 'not-logged-in';
+
+        await sql`
+            UPDATE AppUser 
+            SET ispublic = ${isPublic} 
+            WHERE id = ${user.id}
+        `;
+        
+        return 'success';
+    } catch (e) {
+        console.error('Error updating privacy setting:', e);
+        return 'server-error';
     }
 } 

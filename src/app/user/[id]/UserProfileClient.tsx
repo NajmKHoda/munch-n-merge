@@ -21,6 +21,9 @@ export default function UserProfileClient({ user, isOwnProfile, friendCount, fri
   const [friendStatus, setFriendStatus] = useState(initialFriendStatus);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // If the profile is private and the viewer is not a friend and not the owner
+  const isPrivateAndNotFriend = !isOwnProfile && !user.ispublic && friendStatus !== 'friends';
+
   // Editable bio save
   const handleBioSave = async () => {
     await updateUserProfile({ bio });
@@ -53,6 +56,41 @@ export default function UserProfileClient({ user, isOwnProfile, friendCount, fri
       <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-xl border border-neutral-200 text-center">
         <h2 className="text-2xl font-bold mb-2 text-neutral-900">User Not Found</h2>
         <p className="text-neutral-500">This user does not exist.</p>
+      </div>
+    );
+  }
+
+  if (isPrivateAndNotFriend) {
+    return (
+      <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded-2xl shadow-xl border border-neutral-200">
+        <div className="text-center mb-6">
+          <div className="relative w-24 h-24 mx-auto mb-4">
+            <Image
+              src={DEFAULT_PROFILE_PIC}
+              alt={user.username + ' profile picture'}
+              fill
+              className="rounded-full object-cover border-4 border-indigo-400 bg-white shadow-lg opacity-50"
+            />
+          </div>
+          <h2 className="text-2xl font-bold mb-2 text-neutral-900">{user.username}</h2>
+          <p className="text-neutral-500 mb-4">This profile is private</p>
+          {friendStatus === 'none' && (
+            <button
+              onClick={handleAddFriend}
+              className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-full shadow transition-colors text-base"
+            >
+              Add Friend to View Profile
+            </button>
+          )}
+          {friendStatus === 'sent' && (
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-yellow-100 text-yellow-700 font-semibold">
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3" />
+              </svg>
+              Friend Request Sent
+            </div>
+          )}
+        </div>
       </div>
     );
   }
