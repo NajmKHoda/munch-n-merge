@@ -38,10 +38,12 @@ export async function getFriendRequests(): Errorable<{
         from: {
             id: number;
             username: string;
+            profile_picture: string | null;
         }
         to: {
             id: number;
             username: string;
+            profile_picture: string | null;
         }
     }[]
 }> {
@@ -54,8 +56,10 @@ export async function getFriendRequests(): Errorable<{
                 fr.id AS requestId,
                 from_user.id AS fromId,
                 from_user.username AS fromUsername,
+                from_user.profile_picture AS fromProfilePicture,
                 to_user.id AS toId,
-                to_user.username AS toUsername
+                to_user.username AS toUsername,
+                to_user.profile_picture AS toProfilePicture
             FROM FriendRequest fr
             JOIN AppUser AS from_user ON from_user.id = fr.fromId
             JOIN AppUser AS to_user ON to_user.id = fr.toId
@@ -64,8 +68,10 @@ export async function getFriendRequests(): Errorable<{
             requestid: number;
             fromid: number;
             fromusername: string;
+            fromprofilepicture: string | null;
             toid: number;
             tousername: string;
+            toprofilepicture: string | null;
         }[];
         console.log(rawRequests)
         const requests = rawRequests.map(r => ({
@@ -73,10 +79,12 @@ export async function getFriendRequests(): Errorable<{
             from: {
                 id: r.fromid,
                 username: r.fromusername,
+                profile_picture: r.fromprofilepicture
             },
             to: {
                 id: r.toid,
                 username: r.tousername,
+                profile_picture: r.toprofilepicture
             }
         }));
         return { requests };
@@ -171,6 +179,7 @@ export async function getFriends(): Errorable<{
     friends: {
         id: number;
         username: string;
+        profile_picture: string | null;
     }[]
 }> {
     try {
@@ -178,13 +187,13 @@ export async function getFriends(): Errorable<{
         if (!user) return { error: 'not-logged-in' };
 
         const friends = await sql`
-            SELECT id, username FROM AppUser
+            SELECT id, username, profile_picture FROM AppUser
             WHERE id IN (
                 SELECT id2 FROM Friend WHERE id1 = ${user.id}
                 UNION
                 SELECT id1 FROM Friend WHERE id2 = ${user.id}
             );
-        ` as { id: number; username: string }[];
+        ` as { id: number; username: string; profile_picture: string | null }[];
 
         return { friends };
     } catch (e) {
@@ -203,6 +212,7 @@ export async function searchUsers(query: string): Errorable<{
     users: {
         id: number;
         username: string;
+        profile_picture: string | null;
     }[]
 }> {
     try {
@@ -217,7 +227,7 @@ export async function searchUsers(query: string): Errorable<{
         // excluding the current user and users who are already friends
         // or have pending friend requests
         const users = await sql`
-            SELECT id, username FROM AppUser
+            SELECT id, username, profile_picture FROM AppUser
             WHERE 
                 id != ${user.id} 
                 AND username ILIKE ${'%' + query + '%'}
@@ -234,7 +244,7 @@ export async function searchUsers(query: string): Errorable<{
                 )
             ORDER BY username
             LIMIT 10
-        ` as { id: number; username: string }[];
+        ` as { id: number; username: string; profile_picture: string | null }[];
         console.log(users)
         return { users };
     } catch (e) {

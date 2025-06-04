@@ -11,15 +11,20 @@ import {
   removeFriend 
 } from '@/lib/actions/friend';
 import { getUser } from '@/lib/actions/auth';
+import Image from 'next/image';
+import Link from 'next/link';
+
+const DEFAULT_PROFILE_PIC = "/images/IconForWebsite.png";
+
 export default function FriendsPage() {
   const [user, setUser] = useState<{ id: number; username: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<Array<{ id: number; username: string }>>([]);
-  const [friends, setFriends] = useState<Array<{ id: number; username: string }>>([]);
+  const [searchResults, setSearchResults] = useState<Array<{ id: number; username: string; profile_picture: string | null }>>([]);
+  const [friends, setFriends] = useState<Array<{ id: number; username: string; profile_picture: string | null }>>([]);
   const [friendRequests, setFriendRequests] = useState<Array<{
     id: number;
-    from: { id: number; username: string };
-    to: { id: number; username: string };
+    from: { id: number; username: string; profile_picture: string | null };
+    to: { id: number; username: string; profile_picture: string | null };
   }>>([]);
   const [loading, setLoading] = useState({
     search: false,
@@ -188,7 +193,22 @@ export default function FriendsPage() {
             <ul className="divide-y divide-gray-200">
               {searchResults.map(user => (
                 <li key={user.id} className="py-3 flex justify-between items-center">
-                  <span className="font-medium text-gray-800">{user.username}</span>
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-10 h-10">
+                      <Image
+                        src={user.profile_picture || DEFAULT_PROFILE_PIC}
+                        alt={user.username + ' profile picture'}
+                        fill
+                        className="rounded-full object-cover border border-gray-200"
+                      />
+                    </div>
+                    <Link
+                      href={`/user/${user.id}`}
+                      className="font-medium text-gray-800 hover:text-indigo-600 transition-colors"
+                    >
+                      {user.username}
+                    </Link>
+                  </div>
                   <button
                     onClick={() => handleSendRequest(user.id)}
                     className="bg-amber-500 text-white px-3 py-1.5 rounded hover:bg-amber-600 transition-colors flex items-center gap-1 text-sm"
@@ -221,12 +241,38 @@ export default function FriendsPage() {
             {friendRequests.map(request => (
               <li key={request.id} className="py-3">
                 <div className="flex justify-between items-center">
-                  <div>
-                    {isIncomingRequest(request) ? (
-                      <p className="text-gray-800"><strong className="font-medium">{request.from.username}</strong> wants to be your friend</p>
-                    ) : (
-                      <p className="text-gray-800">Friend request sent to <strong className="font-medium">{request.to.username}</strong></p>
-                    )}
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-10 h-10">
+                      <Image
+                        src={isIncomingRequest(request) ? request.from.profile_picture || DEFAULT_PROFILE_PIC : request.to.profile_picture || DEFAULT_PROFILE_PIC}
+                        alt={(isIncomingRequest(request) ? request.from.username : request.to.username) + ' profile picture'}
+                        fill
+                        className="rounded-full object-cover border border-gray-200"
+                      />
+                    </div>
+                    <div>
+                      {isIncomingRequest(request) ? (
+                        <p className="text-gray-800">
+                          <Link
+                            href={`/user/${request.from.id}`}
+                            className="font-medium hover:text-indigo-600 transition-colors"
+                          >
+                            {request.from.username}
+                          </Link>
+                          {' '}wants to be your friend
+                        </p>
+                      ) : (
+                        <p className="text-gray-800">
+                          Friend request sent to{' '}
+                          <Link
+                            href={`/user/${request.to.id}`}
+                            className="font-medium hover:text-indigo-600 transition-colors"
+                          >
+                            {request.to.username}
+                          </Link>
+                        </p>
+                      )}
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     {isIncomingRequest(request) && (
@@ -283,7 +329,22 @@ export default function FriendsPage() {
           <ul className="divide-y divide-gray-200">
             {friends.map(friend => (
               <li key={friend.id} className="py-3 flex justify-between items-center">
-                <span className="font-medium text-gray-800">{friend.username}</span>
+                <div className="flex items-center gap-3">
+                  <div className="relative w-10 h-10">
+                    <Image
+                      src={friend.profile_picture || DEFAULT_PROFILE_PIC}
+                      alt={friend.username + ' profile picture'}
+                      fill
+                      className="rounded-full object-cover border border-gray-200"
+                    />
+                  </div>
+                  <Link
+                    href={`/user/${friend.id}`}
+                    className="font-medium text-gray-800 hover:text-indigo-600 transition-colors"
+                  >
+                    {friend.username}
+                  </Link>
+                </div>
                 <button
                   onClick={() => handleRemoveFriend(friend.id)}
                   className="bg-white text-red-500 border border-red-500 px-3 py-1.5 rounded hover:bg-red-50 transition-colors flex items-center gap-1 text-sm"
