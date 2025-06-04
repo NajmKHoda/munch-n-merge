@@ -34,13 +34,13 @@ export default async function RecipePage({ params }: { params: { id: string } })
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-amber-50 py-8 px-4 animate-fade-in">
+        <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-amber-50 py-8 px-4">
             <div className="max-w-5xl mx-auto">
                 {/* Back Button */}
-                <div className="mb-6 animate-slide-down">
+                <div className="mb-6">
                     <Link 
                         href={isFromSearch ? `/search${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}` : "/trending"}
-                        className="inline-flex items-center text-indigo-600 hover:text-indigo-800 bg-white px-4 py-2 rounded-lg shadow-sm hover:shadow transition-all duration-200"
+                        className="inline-flex items-center text-indigo-600 hover:text-indigo-800 bg-white px-4 py-2 rounded-lg shadow-sm hover:shadow"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" />
@@ -50,7 +50,7 @@ export default async function RecipePage({ params }: { params: { id: string } })
                 </div>
 
                 {/* Recipe Card */}
-                <div className="bg-white rounded-2xl shadow-xl overflow-hidden animate-slide-up">
+                <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
                     {/* Header Section */}
                     <div className="relative bg-gradient-to-r from-indigo-600 to-indigo-800 p-8 text-white">
                         <div className="absolute top-4 right-4 flex items-center gap-4 text-white/80">
@@ -77,7 +77,7 @@ export default async function RecipePage({ params }: { params: { id: string } })
                     <div className={`grid ${getGridLayout()} gap-8 p-8`}>
                         {/* Ingredients */}
                         {hasIngredients && (
-                            <div className={`${!hasInstructions ? 'md:col-span-3' : 'md:col-span-1'} animate-fade-in`} style={{ animationDelay: '200ms' }}>
+                            <div className={`${!hasInstructions ? 'md:col-span-3' : 'md:col-span-1'}`}>
                                 <div className="bg-amber-50 rounded-xl p-6 border border-amber-100 h-full">
                                     <h2 className="text-xl font-semibold text-amber-900 mb-4 flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-amber-600" viewBox="0 0 20 20" fill="currentColor">
@@ -101,7 +101,7 @@ export default async function RecipePage({ params }: { params: { id: string } })
 
                         {/* Instructions */}
                         {hasInstructions && (
-                            <div className={`${!hasIngredients ? 'md:col-span-3' : 'md:col-span-2'} animate-fade-in`} style={{ animationDelay: '400ms' }}>
+                            <div className={`${!hasIngredients ? 'md:col-span-3' : 'md:col-span-2'}`}>
                                 <div className="bg-indigo-50 rounded-xl p-6 border border-indigo-100 h-full">
                                     <h2 className="text-xl font-semibold text-indigo-900 mb-4 flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-indigo-600" viewBox="0 0 20 20" fill="currentColor">

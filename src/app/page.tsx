@@ -41,7 +41,7 @@ export default async function Home() {
         <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-indigo-100 flex flex-col justify-between">
             {/* Hero Section */}
             <section className="max-w-7xl mx-auto py-20 px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
-                <h1 className="text-6xl font-extrabold text-indigo-700 mb-4 tracking-tight drop-shadow-sm">
+                <h1 className="text-6xl font-extrabold text-indigo-700 mb-4 tracking-tight">
                     Munch-N-Merge
                 </h1>
                 <p className="mt-4 text-2xl text-black max-w-2xl mx-auto font-semibold">
@@ -50,19 +50,19 @@ export default async function Home() {
                 <div className="flex flex-wrap gap-4 justify-center mt-10">
                     {user ? (
                         <>
-                            <Link href="/myrecipies" className="inline-flex items-center px-6 py-3 rounded-lg text-lg font-semibold text-white bg-indigo-500 hover:bg-indigo-600 shadow transition">
+                            <Link href="/myrecipies" className="inline-flex items-center px-6 py-3 rounded-lg text-lg font-semibold text-white bg-indigo-500 hover:bg-indigo-600 shadow">
                                 My Recipes
                             </Link>
-                            <Link href="/trending" className="inline-flex items-center px-6 py-3 rounded-lg text-lg font-semibold text-white bg-amber-400 hover:bg-amber-500 shadow transition">
+                            <Link href="/trending" className="inline-flex items-center px-6 py-3 rounded-lg text-lg font-semibold text-white bg-amber-400 hover:bg-amber-500 shadow">
                                 Explore Feed
                             </Link>
                         </>
                     ) : (
                         <>
-                            <Link href="/signup" className="inline-flex items-center px-6 py-3 rounded-lg text-lg font-semibold text-white bg-indigo-500 hover:bg-indigo-600 shadow transition">
+                            <Link href="/signup" className="inline-flex items-center px-6 py-3 rounded-lg text-lg font-semibold text-white bg-indigo-500 hover:bg-indigo-600 shadow">
                                 Sign Up
                             </Link>
-                            <Link href="/login" className="inline-flex items-center px-6 py-3 rounded-lg text-lg font-semibold text-indigo-600 bg-white border border-indigo-200 hover:bg-indigo-50 shadow transition">
+                            <Link href="/login" className="inline-flex items-center px-6 py-3 rounded-lg text-lg font-semibold text-indigo-600 bg-white border border-indigo-200 hover:bg-indigo-50 shadow">
                                 Sign In
                             </Link>
                         </>
@@ -76,22 +76,22 @@ export default async function Home() {
                     <FeatureCard
                         icon={<CakeIcon className="h-10 w-10 text-indigo-400" />}
                         title="Recipe Management"
-                        desc="Easily create, edit, and organize your favorite recipes. Your culinary journey starts here!"
+                        desc="Easily create, edit, and organize your favorite recipes."
                     />
                     <FeatureCard
                         icon={<UsersIcon className="h-10 w-10 text-amber-500" />}
                         title="Social Cooking"
-                        desc="Socially connect with friends, share your creations, and get inspired by a vibrant food-loving community. Build your cooking network!"
+                        desc="Find and connect with friends, share your recipes, and get ideas and inspiration from others!"
                     />
                     <FeatureCard
                         icon={<FireIcon className="h-10 w-10 text-amber-400" />}
                         title="Trending & Favorites"
-                        desc="See what's hot! Like, favorite, and discover trending recipes from your network."
+                        desc="Find and discover the most delicious recipes from others!"
                     />
                     <FeatureCard
                         icon={<GeminiSparkleIcon className="h-10 w-10" />}
                         title="AI Creativity Control"
-                        desc="Adjust how bold or classic your merged recipes are with our AI creativity slider!"
+                        desc="Merge different tasty recipes with the power of AI! Be as funny or creative as you want!"
                     />
                 </div>
             </section>
@@ -108,7 +108,7 @@ export default async function Home() {
 
 function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
     return (
-        <div className="bg-white rounded-xl shadow p-8 flex flex-col items-center text-center border border-gray-100 hover:shadow-lg transition w-full max-w-xs">
+        <div className="bg-white rounded-xl shadow p-8 flex flex-col items-center text-center border border-gray-100 hover:shadow-lg w-full max-w-xs">
             <div className="mb-4">{icon}</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">{title}</h3>
             <p className="text-gray-500">{desc}</p>
