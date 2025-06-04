@@ -2,9 +2,10 @@ import { getRecipe, type Recipe } from "@/lib/actions/recipe";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { headers } from 'next/headers';
+import MergeHistoryGraph from './MergeHistoryGraph';
 
 export default async function RecipePage({ params }: { params: { id: string } }) {
-    const result = await getRecipe(parseInt(params.id));
+    const result = await getRecipe(parseInt((await params).id));
     const headersList = await headers();
     const referer = headersList.get('referer') || '';
     const isFromSearch = referer.includes('/search');
@@ -17,7 +18,6 @@ export default async function RecipePage({ params }: { params: { id: string } })
     }
     
     const recipe = result.recipe;
-    console.log(recipe)
     const ingredients = typeof recipe.ingredients === 'string' 
         ? JSON.parse(recipe.ingredients) as Record<string, string>
         : recipe.ingredients;
@@ -124,6 +124,9 @@ export default async function RecipePage({ params }: { params: { id: string } })
                         )}
                     </div>
                 </div>
+
+                {/* Merge History Graph */}
+                <MergeHistoryGraph recipeId={parseInt(params.id)} />
             </div>
         </div>
     );

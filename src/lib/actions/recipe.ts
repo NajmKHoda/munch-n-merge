@@ -305,7 +305,7 @@ export async function getRecipeMergeHistory(id: number): Errorable<{
     try {
         const nodes = await sql`
             WITH RECURSIVE RecipeHistory AS (
-                SELECT r.id, r.name FROM Recipe WHERE id = ${id}
+                SELECT r.id, r.name FROM Recipe r WHERE id = ${id}
                 UNION
                 SELECT r.id, r.name FROM RecipeLink rl
                 JOIN RecipeHistory rh ON rl.childId = rh.id
@@ -316,13 +316,14 @@ export async function getRecipeMergeHistory(id: number): Errorable<{
             COALESCE(
                 jsonb_agg(rl.parentId) FILTER (WHERE rl.parentId IS NOT NULL),
                 '[]'::jsonb
-            ) AS parentIds
+            ) AS "parentIds"
             FROM RecipeHistory rh
             LEFT JOIN RecipeLink rl ON rh.id = rl.childId
             GROUP BY rh.id, rh.name
         ` as { id: number, name: string, parentIds: number[] }[];
 
         if (nodes.length === 0) return { error: 'not-found' };
+        console.log(nodes);
         return { history: nodes }
     } catch (e) {
         console.error('Error fetching recipe merge history:', e);
