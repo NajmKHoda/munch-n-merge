@@ -90,7 +90,7 @@ Munch-n-Merge is a  recipe social media platform that allows users to create the
       SESSION_SECRET="your-secure-random-string"
       
       # Google Gemini API (REQUIRED for recipe merging)
-      # Get this from Google Cloud Console with Gemini API enabled
+      # Get this from Google Cloud Console with Gemini API enabled (next step)
       GOOGLE_GENAI_API_KEY="your-google-gemini-api-key"
       ```
    
@@ -108,14 +108,43 @@ Munch-n-Merge is a  recipe social media platform that allows users to create the
       
       **Note**: Make sure your `NEON_DATABASE_URL` is correctly set in the `.env` file before running this command.
 
-3. **Start the development server**
+3. **Google Gemini API Setup**
+   
+   Follow these steps to obtain your Google Gemini API key for recipe merging:
+   
+   a. **Create a Google Cloud Project**
+      - Go to [Google Cloud Console](https://console.cloud.google.com/)
+      - Sign in with your Google account
+      - Click "Select a project" dropdown and then "New Project"
+      - Enter a project name and click "Create"
+   
+   b. **Enable the Gemini API**
+      - In your Google Cloud Console, navigate to "APIs & Services" > "Library"
+      - Search for "Generative Language API" (this is the API for Gemini)
+      - Click on it and then click "Enable"
+   
+   c. **Create API Credentials**
+      - Go to "APIs & Services" > "Credentials"
+      - Click "Create Credentials" > "API Key"
+      - Copy the generated API key
+      - (Optional but recommended) Click "Restrict Key" to limit usage to the Generative Language API
+   
+   d. **Add to Environment Variables**
+      - Add your API key to the `.env` file:
+        ```
+        GOOGLE_GENAI_API_KEY="your-copied-api-key-here"
+        ```
+   
+   **Note**: Keep your API key secure and never commit it to version control. The recipe merging feature will not work without this key.
+
+4. **Start the development server**
    ```bash
    npm run dev
    # or
    yarn dev
    ```
 
-4. **Open your browser** and navigate to `http://localhost:3000`
+5. **Open your browser** and navigate to `http://localhost:3000`
 
 ## Technology Stack Details
 
@@ -337,7 +366,7 @@ The application uses Next.js Server Actions for data operations. Key endpoints i
    - Verify JWT_SECRET in environment variables
 
 3. **Recipe Merge Failures**:
-   - Check your OpenAI API key is valid
+   - Check your Gemini API key is valid
    - Ensure at least 2 recipes are selected
 
 ## Contributors
