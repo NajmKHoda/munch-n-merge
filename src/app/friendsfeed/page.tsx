@@ -7,6 +7,7 @@ import { getFriendsFeed } from '@/lib/actions/feed';
 import { likeRecipe, unlikeRecipe, getUserLikes } from '@/lib/actions/like';
 import { addFavorite, removeFavorite, getUserFavorites } from '@/lib/actions/favorite';
 import { Recipe } from '@/lib/actions/recipe';
+import CommentSection from '@/components/CommentSection';
 
 const ITEMS_PER_PAGE = 10;
 const NETWORK_DEPTH = 3; // Get recipes from friends of friends of friends
@@ -238,7 +239,7 @@ export default function FeedPage() {
       
       <div className="space-y-4">
         {recipes.map(recipe => (
-          <div key={recipe.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 bg-white relative">
+          <div key={recipe.id} className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 bg-white">
             <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
             
             {/* Recipe author header */}
@@ -341,7 +342,7 @@ export default function FeedPage() {
             </div>
             
             {/* Recipe content */}
-            <div className="p-4 ml-2">
+            <div className="p-4 ml-2 relative">
               <Link 
                 href={`/recipe/${recipe.id}`}
                 className="block mb-2"
@@ -377,9 +378,9 @@ export default function FeedPage() {
                 </div>
               )}
               
-              {/* Difficulty Badge - Moved to bottom right */}
+              {/* Difficulty Badge - now inside recipe content */}
               {recipe.difficulty && (
-                <div className="absolute bottom-4 right-4">
+                <div className="absolute bottom-2 right-2">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                     ${recipe.difficulty?.toLowerCase() === 'easy' ? 'bg-green-100 text-green-800' :
                       recipe.difficulty?.toLowerCase() === 'medium' ? 'bg-yellow-100 text-yellow-800' :
@@ -391,6 +392,8 @@ export default function FeedPage() {
               )}
               
             </div>
+            {/* Add comment section below each recipe */}
+            <CommentSection recipeId={recipe.id} />
           </div>
         ))}
       </div>

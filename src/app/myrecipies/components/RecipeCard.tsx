@@ -1,5 +1,6 @@
 import { Recipe } from './types';
 import { useState } from 'react';
+import Link from 'next/link';
 
 interface RecipeCardProps {
     recipe: Recipe;
@@ -16,7 +17,11 @@ export default function RecipeCard({ recipe, onEdit, onDelete, likeCount }: Reci
         <div className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm hover:shadow transition-all duration-200 relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500"></div>
             <div className="ml-2">
-                <h2 className="text-xl font-bold mb-2 text-gray-800">{recipe.name}</h2>
+                <h2 className="text-xl font-bold mb-2 text-gray-800">
+                    <Link href={`/recipe/${recipe.id}`} className="hover:text-indigo-600 transition-colors">
+                        {recipe.name}
+                    </Link>
+                </h2>
                 <p className="text-gray-600 mb-3 text-sm">{recipe.description}</p>
                 
                 <div className="mb-3">
