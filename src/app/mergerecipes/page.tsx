@@ -76,6 +76,8 @@ export default function MergeRecipesPage() {
         setError(null);
 
         try {
+            console.log("Merging recipes with IDs:", selectedRecipes);
+            console.log("Using temperature:", temperature);
             
             // Use mergeWithExternalRecipes to handle both user and external recipes
             const result = await mergeWithExternalRecipes(selectedRecipes, temperature);

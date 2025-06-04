@@ -75,6 +75,7 @@ export default function RecipesPage() {
 
     // Helper function to handle form submission for creating recipes
     const handleCreateRecipe = async (formData: FormData, ingredientsList: Ingredient[]) => {
+        console.log("Creating recipe with ingredients:", ingredientsList);
         
         try {
             // Format ingredients as a key-value object where keys are ingredient names and values are quantities
@@ -83,6 +84,7 @@ export default function RecipesPage() {
                 return obj;
             }, {} as Record<string, string>);
             
+            console.log("Formatted ingredients for API:", ingredientsObj);
             
             // Make sure recipe name is provided
             if (!formData.name.trim()) {
@@ -98,7 +100,9 @@ export default function RecipesPage() {
                     ingredients: ingredientsObj,
                     instructions: formData.instructions.trim()
                 };
-                                
+                
+                console.log("Sending data to server:", recipeData);
+                
                 // Pass the ingredients as a proper object for the SQL query
                 const result = await createRecipe(
                     recipeData.name,

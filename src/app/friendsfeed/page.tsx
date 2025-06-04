@@ -38,6 +38,7 @@ export default function FeedPage() {
         ITEMS_PER_PAGE,
         newOffset
       );
+      console.log('Fetched recipes:', result);
       if ('error' in result) {
         if (result.error === 'not-logged-in') {
           setError('Please log in to view your feed');
