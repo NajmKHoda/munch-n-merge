@@ -98,3 +98,15 @@ CREATE OR REPLACE VIEW RecipeWithLikes AS (
     LEFT JOIN RecipeLike rl ON r.id = rl.recipeId 
     GROUP BY r.id
 );
+
+CREATE TABLE Comment (
+    id SERIAL PRIMARY KEY,
+    recipe_id INTEGER NOT NULL REFERENCES Recipe(id) ON DELETE CASCADE,
+    user_id INTEGER NOT NULL REFERENCES AppUser(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX comment_recipe_id_idx ON Comment(recipe_id);
+CREATE INDEX comment_user_id_idx ON Comment(user_id); 
