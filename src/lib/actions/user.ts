@@ -115,8 +115,8 @@ export async function getPublicUserProfile(userId: number) {
         if (!result[0].ispublic && currentUser?.id !== userId) {
             const areFriends = await sql`
                 SELECT 1 FROM Friend 
-                WHERE (user1_id = ${currentUser?.id} AND user2_id = ${userId} AND status = 'accepted')
-                OR (user1_id = ${userId} AND user2_id = ${currentUser?.id} AND status = 'accepted')
+                WHERE (id1 = ${currentUser?.id} AND id2 = ${userId})
+                OR (id1 = ${userId} AND id2 = ${currentUser?.id})
             `;
             
             if (areFriends.length === 0) {
