@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { logout } from '@/lib/actions/auth';
 import { useUser } from '@/lib/context/UserContext';
+import { getSearchSuggestions } from '@/lib/actions/recipe';
 
 interface Suggestion {
     id: number;
@@ -61,16 +62,15 @@ export default function Navbar() {
         debounceRef.current = setTimeout(async () => {
             setIsSearching(true);
             try {
-                const res = await fetch(`/api/searchSuggestions?q=${encodeURIComponent(q)}`);
-                if (!res.ok) {
+                const result = await getSearchSuggestions(q);
+                if ('error' in result) {
                     setSuggestions([]);
                     setShowSuggestions(false);
                     setIsSearching(false);
                     return;
                 }
-                const data: { suggestions: Suggestion[] } = await res.json();
-                setSuggestions(data.suggestions);
-                setShowSuggestions(data.suggestions.length > 0);   
+                setSuggestions(result.suggestions);
+                setShowSuggestions(result.suggestions.length > 0);   
             } catch (err) {
                 console.error('Error fetching search suggestions:', err);
                 setSuggestions([]);

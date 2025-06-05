@@ -383,6 +383,61 @@ export async function getRecipeMergeHistory(id: number): Errorable<{
 }
 
 /**
+ * Gets recipe search suggestions based on a query string.
+ * @param query - The search query to match against recipe names
+ * @returns An object with either:
+ *          { suggestions: Array<{ id: number, name: string }> } containing the matching suggestions if successful, or
+ *          { error: 'server-error' } if an error occurs.
+ */
+export async function getSearchSuggestions(query: string): Errorable<{ suggestions: { id: number, name: string }[] }> {
+    try {
+        const trimmed = query.trim();
+        
+        if (!trimmed) {
+            return { suggestions: [] };
+        }
+
+        const currentUser = await getUser();
+        
+        if (!currentUser) {
+            // If not logged in, only search recipes from public users
+            const suggestions = await sql`
+                SELECT r.id, r.name
+                FROM Recipe r
+                JOIN AppUser u ON r.authorId = u.id
+                WHERE LOWER(r.name) LIKE LOWER(${'%' + trimmed + '%'}) 
+                  AND u.ispublic = true
+                ORDER BY r.name ASC
+                LIMIT 5
+            ` as { id: number, name: string }[];
+            return { suggestions };
+        }
+
+        // If logged in, search recipes from public users and friends
+        const suggestions = await sql`
+            SELECT r.id, r.name
+            FROM Recipe r
+            JOIN AppUser u ON r.authorId = u.id
+            WHERE LOWER(r.name) LIKE LOWER(${'%' + trimmed + '%'})
+              AND (u.ispublic = true 
+                   OR u.id = ${currentUser.id}
+                   OR EXISTS (
+                       SELECT 1 FROM Friend 
+                       WHERE (id1 = ${currentUser.id} AND id2 = u.id)
+                       OR (id1 = u.id AND id2 = ${currentUser.id})
+                   ))
+            ORDER BY r.name ASC
+            LIMIT 5
+        ` as { id: number, name: string }[];
+        
+        return { suggestions };
+    } catch (e) {
+        console.error('Error fetching search suggestions:', e);
+        return { error: 'server-error' };
+    }
+}
+
+/**
  * Searches for recipes by title.
  * @param query - The search query to match against recipe titles
  * @returns An object with either:
