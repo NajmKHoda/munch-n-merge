@@ -99,7 +99,7 @@ CREATE OR REPLACE VIEW RecipeWithLikes AS (
     GROUP BY r.id
 );
 
-CREATE TABLE Comment (
+CREATE TABLE IF NOT EXISTS Comment (
     id SERIAL PRIMARY KEY,
     recipe_id INTEGER NOT NULL REFERENCES Recipe(id) ON DELETE CASCADE,
     user_id INTEGER NOT NULL REFERENCES AppUser(id) ON DELETE CASCADE,
@@ -108,5 +108,5 @@ CREATE TABLE Comment (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX comment_recipe_id_idx ON Comment(recipe_id);
-CREATE INDEX comment_user_id_idx ON Comment(user_id); 
+CREATE INDEX IF NOT EXISTS comment_recipe_id_idx ON Comment(recipe_id);
+CREATE INDEX IF NOT EXISTS comment_user_id_idx ON Comment(user_id); 
