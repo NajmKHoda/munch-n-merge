@@ -20,6 +20,27 @@ export async function getTrendingRecipes(
     limit: number,
     offset: number = 0
 ): Promise<TrendingItem[]> {
+    const currentUser = await getUser();
+    
+    if (!currentUser) {
+        // If not logged in, only show recipes from public users
+        return await sql`
+            SELECT 
+                r.*, 
+                u.username AS "authorName",
+                u.id::int AS "authorId",
+                u.profile_picture AS "authorProfilePicture",
+                base.difficulty
+            FROM RecipeWithLikes r
+            JOIN AppUser u ON u.id = r.authorid
+            JOIN Recipe base ON base.id = r.id
+            WHERE u.ispublic = true
+            ORDER BY r.likecount DESC, r.createdAt DESC
+            LIMIT ${limit} OFFSET ${offset}
+            ` as TrendingItem[];
+    }
+
+    // If logged in, show recipes from public users and friends
     return await sql`
         SELECT 
             r.*, 
@@ -30,6 +51,13 @@ export async function getTrendingRecipes(
         FROM RecipeWithLikes r
         JOIN AppUser u ON u.id = r.authorid
         JOIN Recipe base ON base.id = r.id
+        WHERE u.ispublic = true 
+           OR u.id = ${currentUser.id}
+           OR EXISTS (
+               SELECT 1 FROM Friend 
+               WHERE (id1 = ${currentUser.id} AND id2 = u.id)
+               OR (id1 = u.id AND id2 = ${currentUser.id})
+           )
         ORDER BY r.likecount DESC, r.createdAt DESC
         LIMIT ${limit} OFFSET ${offset}
         ` as TrendingItem[];

@@ -327,7 +327,12 @@ export default function UserProfilePage({ params }: { params: Promise<{ id: stri
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
               <p className="text-gray-600 font-medium">
-                {isOwnProfile ? 'You haven\'t created any recipes yet' : `${user.username} hasn't created any recipes yet`}
+                {!isOwnProfile && !user.ispublic && friendStatus !== 'friends' 
+                  ? 'Account is private' 
+                  : isOwnProfile 
+                    ? 'You haven\'t created any recipes yet' 
+                    : `${user.username} hasn't created any recipes yet`
+                }
               </p>
               {isOwnProfile && (
                 <Link

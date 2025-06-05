@@ -46,13 +46,52 @@ export async function createRecipe(
 export async function getRecipe(id: number): Errorable<{ recipe: Recipe }> {
     try {
         const recipes = await sql`
-            SELECT r.*, u.username as authorName 
+            SELECT r.*, u.username as authorName, u.ispublic, u.id as authorId
             FROM RecipeWithLikes r
             JOIN AppUser u ON r.authorId = u.id
             WHERE r.id = ${id}
         `;
         if (recipes.length === 0) return { error: 'not-found' };
-        return { recipe: recipes[0] as Recipe };
+        
+        const recipe = recipes[0];
+        const currentUser = await getUser();
+        
+        // If the recipe author's profile is private, check access permissions
+        if (!recipe.ispublic) {
+            // If not logged in and profile is private, deny access
+            if (!currentUser) {
+                return { error: 'not-found' };
+            }
+            
+            // If it's not the user's own recipe, check if they're friends
+            if (currentUser.id !== recipe.authorId) {
+                const friendship = await sql`
+                    SELECT 1 FROM Friend 
+                    WHERE (id1 = ${currentUser.id} AND id2 = ${recipe.authorId})
+                    OR (id1 = ${recipe.authorId} AND id2 = ${currentUser.id})
+                `;
+                
+                if (friendship.length === 0) {
+                    return { error: 'not-found' };
+                }
+            }
+        }
+        
+        // Remove the ispublic field from the response (create a new object without it)
+        const recipeData = {
+            id: recipe.id,
+            name: recipe.name,
+            description: recipe.description,
+            ingredients: recipe.ingredients,
+            instructions: recipe.instructions,
+            createdAt: recipe.createdAt,
+            likecount: recipe.likecount,
+            authorId: recipe.authorId,
+            authorname: recipe.authorname,
+            difficulty: recipe.difficulty,
+            profile_picture: recipe.profile_picture
+        };
+        return { recipe: recipeData as Recipe };
     } catch (e) {
         console.error('Error fetching recipe:', e);
         return { error: 'server-error' };
@@ -216,12 +255,24 @@ export async function mergeWithExternalRecipes(ids: number[], temperature?: numb
         const user = await getUser();
         if (!user) return { error: 'not-logged-in' };
         
-        // Get all recipes, including ones that don't belong to the user
+        // Get all recipes, but filter to only include ones the user has access to
         const recipes = (await sql`
-            SELECT * FROM Recipe
-            WHERE id = ANY(${ids})
+            SELECT r.* FROM Recipe r
+            JOIN AppUser u ON r.authorId = u.id
+            WHERE r.id = ANY(${ids})
+              AND (u.ispublic = true 
+                   OR u.id = ${user.id}
+                   OR EXISTS (
+                       SELECT 1 FROM Friend 
+                       WHERE (id1 = ${user.id} AND id2 = u.id)
+                       OR (id1 = u.id AND id2 = ${user.id})
+                   ))
         `) as Recipe[];
-        if (recipes.length === 0) return { error: 'recipe-not-found' };
+        
+        // Check if user has access to all requested recipes
+        if (recipes.length !== ids.length) {
+            return { error: 'recipe-not-found' };
+        }
 
         const mergedRecipe = await generateMergedRecipe(recipes, temperature);
         if (mergedRecipe === null) return { error: 'generation-error' };
@@ -340,6 +391,26 @@ export async function getRecipeMergeHistory(id: number): Errorable<{
  */
 export async function searchRecipes(query: string): Errorable<{ recipes: Recipe[] }> {
     try {
+        const currentUser = await getUser();
+        
+        if (!currentUser) {
+            // If not logged in, only search recipes from public users
+            const recipes = await sql`
+                SELECT r.*, u.username as authorName,
+                       COUNT(rl.userId) as likeCount
+                FROM Recipe r
+                LEFT JOIN AppUser u ON r.authorId = u.id
+                LEFT JOIN RecipeLike rl ON r.id = rl.recipeId
+                WHERE LOWER(r.name) LIKE LOWER(${'%' + query + '%'}) 
+                  AND u.ispublic = true
+                GROUP BY r.id, u.username
+                ORDER BY likeCount DESC, r.name ASC
+                LIMIT ${MAX_SEARCH_LIMIT}
+            `;
+            return { recipes: recipes as Recipe[] };
+        }
+
+        // If logged in, search recipes from public users and friends
         const recipes = await sql`
             SELECT r.*, u.username as authorName,
                    COUNT(rl.userId) as likeCount
@@ -347,6 +418,13 @@ export async function searchRecipes(query: string): Errorable<{ recipes: Recipe[
             LEFT JOIN AppUser u ON r.authorId = u.id
             LEFT JOIN RecipeLike rl ON r.id = rl.recipeId
             WHERE LOWER(r.name) LIKE LOWER(${'%' + query + '%'})
+              AND (u.ispublic = true 
+                   OR u.id = ${currentUser.id}
+                   OR EXISTS (
+                       SELECT 1 FROM Friend 
+                       WHERE (id1 = ${currentUser.id} AND id2 = u.id)
+                       OR (id1 = u.id AND id2 = ${currentUser.id})
+                   ))
             GROUP BY r.id, u.username
             ORDER BY likeCount DESC, r.name ASC
             LIMIT ${MAX_SEARCH_LIMIT}
@@ -361,15 +439,66 @@ export async function searchRecipes(query: string): Errorable<{ recipes: Recipe[
 
 export async function getRecipesByUserId(userId: number): Errorable<{ recipes: Recipe[] }> {
     try {
-        const recipes = await sql`
-            SELECT r.*, u.username as authorname, u.profile_picture as authorprofilepicture
-            FROM RecipeWithLikes r
-            JOIN AppUser u ON r.authorId = u.id
-            WHERE r.authorId = ${userId}
-            ORDER BY r.createdAt DESC
-        ` as Recipe[];
+        const currentUser = await getUser();
+        
+        // If the current user is viewing their own recipes, return all
+        if (currentUser && currentUser.id === userId) {
+            const recipes = await sql`
+                SELECT r.*, u.username as authorname, u.profile_picture as authorprofilepicture
+                FROM RecipeWithLikes r
+                JOIN AppUser u ON r.authorId = u.id
+                WHERE r.authorId = ${userId}
+                ORDER BY r.createdAt DESC
+            ` as Recipe[];
+            return { recipes };
+        }
 
-        return { recipes };
+        // Check if the profile owner's account is public
+        const profileOwner = await sql`
+            SELECT ispublic FROM AppUser WHERE id = ${userId}
+        `;
+        if (profileOwner.length === 0) {
+            return { recipes: [] };
+        }
+
+        // If the profile is public, return all recipes
+        if (profileOwner[0].ispublic) {
+            const recipes = await sql`
+                SELECT r.*, u.username as authorname, u.profile_picture as authorprofilepicture
+                FROM RecipeWithLikes r
+                JOIN AppUser u ON r.authorId = u.id
+                WHERE r.authorId = ${userId}
+                ORDER BY r.createdAt DESC
+            ` as Recipe[];
+            return { recipes };
+        }
+
+        // If the profile is private, check if current user is friends with the profile owner
+        if (!currentUser) {
+            // Not logged in and profile is private - no recipes visible
+            return { recipes: [] };
+        }
+
+        const friendship = await sql`
+            SELECT 1 FROM Friend 
+            WHERE (id1 = ${currentUser.id} AND id2 = ${userId})
+            OR (id1 = ${userId} AND id2 = ${currentUser.id})
+        `;
+
+        // If they are friends, return recipes; otherwise return empty array
+        if (friendship.length > 0) {
+            const recipes = await sql`
+                SELECT r.*, u.username as authorname, u.profile_picture as authorprofilepicture
+                FROM RecipeWithLikes r
+                JOIN AppUser u ON r.authorId = u.id
+                WHERE r.authorId = ${userId}
+                ORDER BY r.createdAt DESC
+            ` as Recipe[];
+            return { recipes };
+        }
+
+        // Profile is private and not friends - return empty array
+        return { recipes: [] };
     } catch (error) {
         console.error('Error fetching user recipes:', error);
         return { error: 'server-error' };
@@ -378,6 +507,24 @@ export async function getRecipesByUserId(userId: number): Errorable<{ recipes: R
 
 export async function getRecipesByIds(ids: number[]): Errorable<{ recipes: Recipe[] }> {
     try {
+        const currentUser = await getUser();
+        
+        if (!currentUser) {
+            // If not logged in, only return recipes from public users
+            const recipes = await sql`
+                SELECT 
+                    r.*,
+                    u.username as authorname,
+                    u.profile_picture,
+                    u.id as authorId
+                FROM RecipeWithLikes r
+                JOIN AppUser u ON r.authorId = u.id
+                WHERE r.id = ANY(${ids}) AND u.ispublic = true
+            ` as Recipe[];
+            return { recipes };
+        }
+
+        // If logged in, return recipes from public users and friends
         const recipes = await sql`
             SELECT 
                 r.*,
@@ -387,6 +534,13 @@ export async function getRecipesByIds(ids: number[]): Errorable<{ recipes: Recip
             FROM RecipeWithLikes r
             JOIN AppUser u ON r.authorId = u.id
             WHERE r.id = ANY(${ids})
+              AND (u.ispublic = true 
+                   OR u.id = ${currentUser.id}
+                   OR EXISTS (
+                       SELECT 1 FROM Friend 
+                       WHERE (id1 = ${currentUser.id} AND id2 = u.id)
+                       OR (id1 = u.id AND id2 = ${currentUser.id})
+                   ))
         ` as Recipe[];
         return { recipes };
     } catch (e) {
