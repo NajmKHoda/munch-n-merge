@@ -27,7 +27,7 @@ export async function createRecipe(
         const user = await getUser();
         if (!user) return { error: 'not-logged-in' };
 
-        const recipe = await sql`INSERT INTO Recipe (name, authorId, description, ingredients, instructions)
+        const recipe = await sql`INSERT INTO Recipe (name, authorid, description, ingredients, instructions)
             VALUES (${name}, ${user.id}, ${description || ''}, ${ingredients || []}, ${instructions || ''})
             RETURNING id`;
         return { id: recipe[0].id };
@@ -46,9 +46,9 @@ export async function createRecipe(
 export async function getRecipe(id: number): Errorable<{ recipe: Recipe }> {
     try {
         const recipes = await sql`
-            SELECT r.*, u.username as authorName, u.ispublic, u.id as authorId
+            SELECT r.*, u.username as authorname, u.ispublic, u.id as authorid
             FROM RecipeWithLikes r
-            JOIN AppUser u ON r.authorId = u.id
+            JOIN AppUser u ON r.authorid = u.id
             WHERE r.id = ${id}
         `;
         if (recipes.length === 0) return { error: 'not-found' };
@@ -64,11 +64,11 @@ export async function getRecipe(id: number): Errorable<{ recipe: Recipe }> {
             }
             
             // If it's not the user's own recipe, check if they're friends
-            if (currentUser.id !== recipe.authorId) {
+            if (currentUser.id !== recipe.authorid) {
                 const friendship = await sql`
                     SELECT 1 FROM Friend 
-                    WHERE (id1 = ${currentUser.id} AND id2 = ${recipe.authorId})
-                    OR (id1 = ${recipe.authorId} AND id2 = ${currentUser.id})
+                    WHERE (id1 = ${currentUser.id} AND id2 = ${recipe.authorid})
+                    OR (id1 = ${recipe.authorid} AND id2 = ${currentUser.id})
                 `;
                 
                 if (friendship.length === 0) {
@@ -86,7 +86,7 @@ export async function getRecipe(id: number): Errorable<{ recipe: Recipe }> {
             instructions: recipe.instructions,
             createdAt: recipe.createdAt,
             likecount: recipe.likecount,
-            authorId: recipe.authorId,
+            authorid: recipe.authorid,
             authorname: recipe.authorname,
             difficulty: recipe.difficulty,
             profile_picture: recipe.profile_picture
@@ -106,7 +106,7 @@ export async function getUserRecipes(): Errorable<{ recipes: Recipe[] }> {
         }
 
         const recipes = await sql`
-            SELECT * FROM RecipeWithLikes WHERE authorId = ${user.id}
+            SELECT * FROM RecipeWithLikes WHERE authorid = ${user.id}
         ` as Recipe[];
 
         return { recipes };
@@ -142,7 +142,7 @@ export async function updateRecipe(
             description = COALESCE(${description}, description),
             ingredients = COALESCE(${JSON.stringify(ingredients)}, ingredients),
             instructions = COALESCE(${instructions}, instructions)
-            WHERE id = ${id} AND authorId = ${user.id}
+            WHERE id = ${id} AND authorid = ${user.id}
             RETURNING id`;
         if (recipe.length === 0) return 'not-found';
 
@@ -164,7 +164,7 @@ export async function deleteRecipe(id: number) {
         if (!user) return 'not-logged-in';
         
         const recipe = await sql`DELETE FROM Recipe
-            WHERE id = ${id} AND authorId = ${user.id}
+            WHERE id = ${id} AND authorid = ${user.id}
             RETURNING id`;
         if (recipe.length === 0) return 'not-found';
 
@@ -201,7 +201,7 @@ export async function mergeRecipes(ids: number[], temperature?: number): Errorab
         if (!user) return { error: 'not-logged-in' };
         const recipes = (await sql`
             SELECT * FROM Recipe
-            WHERE id = ANY(${ids}) AND authorId = ${user.id}
+            WHERE id = ANY(${ids}) AND authorid = ${user.id}
         `) as Recipe[];
 
         if (recipes.length === 0) return { error: 'recipe-not-found' };
@@ -212,7 +212,7 @@ export async function mergeRecipes(ids: number[], temperature?: number): Errorab
 
         const [{ id: mergedRecipeId }] = await sql`
             WITH MergedRecipe AS (
-                INSERT INTO Recipe (name, authorId, description, ingredients, instructions, difficulty)
+                INSERT INTO Recipe (name, authorid, description, ingredients, instructions, difficulty)
                 VALUES (
                     ${mergedRecipe.name},
                     ${user.id},
@@ -258,7 +258,7 @@ export async function mergeWithExternalRecipes(ids: number[], temperature?: numb
         // Get all recipes, but filter to only include ones the user has access to
         const recipes = (await sql`
             SELECT r.* FROM Recipe r
-            JOIN AppUser u ON r.authorId = u.id
+            JOIN AppUser u ON r.authorid = u.id
             WHERE r.id = ANY(${ids})
               AND (u.ispublic = true 
                    OR u.id = ${user.id}
@@ -279,7 +279,7 @@ export async function mergeWithExternalRecipes(ids: number[], temperature?: numb
         console.log('Merged recipe:', mergedRecipe);
         // First, just create the merged recipe and return its ID
         const [{ id: mergedRecipeId }] = await sql`
-                INSERT INTO Recipe (name, authorId, description, ingredients, instructions, difficulty)
+                INSERT INTO Recipe (name, authorid, description, ingredients, instructions, difficulty)
                 VALUES (
                     ${mergedRecipe.name},
                     ${user.id},
@@ -404,7 +404,7 @@ export async function getSearchSuggestions(query: string): Errorable<{ suggestio
             const suggestions = await sql`
                 SELECT r.id, r.name
                 FROM Recipe r
-                JOIN AppUser u ON r.authorId = u.id
+                JOIN AppUser u ON r.authorid = u.id
                 WHERE LOWER(r.name) LIKE LOWER(${'%' + trimmed + '%'}) 
                   AND u.ispublic = true
                 ORDER BY r.name ASC
@@ -417,7 +417,7 @@ export async function getSearchSuggestions(query: string): Errorable<{ suggestio
         const suggestions = await sql`
             SELECT r.id, r.name
             FROM Recipe r
-            JOIN AppUser u ON r.authorId = u.id
+            JOIN AppUser u ON r.authorid = u.id
             WHERE LOWER(r.name) LIKE LOWER(${'%' + trimmed + '%'})
               AND (u.ispublic = true 
                    OR u.id = ${currentUser.id}
@@ -451,15 +451,15 @@ export async function searchRecipes(query: string): Errorable<{ recipes: Recipe[
         if (!currentUser) {
             // If not logged in, only search recipes from public users
             const recipes = await sql`
-                SELECT r.*, u.username as authorName,
-                       COUNT(rl.userId) as likeCount
+                SELECT r.*, u.username as authorname,
+                       COUNT(rl.userId) as likecount
                 FROM Recipe r
-                LEFT JOIN AppUser u ON r.authorId = u.id
+                LEFT JOIN AppUser u ON r.authorid = u.id
                 LEFT JOIN RecipeLike rl ON r.id = rl.recipeId
                 WHERE LOWER(r.name) LIKE LOWER(${'%' + query + '%'}) 
                   AND u.ispublic = true
                 GROUP BY r.id, u.username
-                ORDER BY likeCount DESC, r.name ASC
+                ORDER BY likecount DESC, r.name ASC
                 LIMIT ${MAX_SEARCH_LIMIT}
             `;
             return { recipes: recipes as Recipe[] };
@@ -467,10 +467,10 @@ export async function searchRecipes(query: string): Errorable<{ recipes: Recipe[
 
         // If logged in, search recipes from public users and friends
         const recipes = await sql`
-            SELECT r.*, u.username as authorName,
-                   COUNT(rl.userId) as likeCount
+            SELECT r.*, u.username as authorname,
+                   COUNT(rl.userId) as likecount
             FROM Recipe r
-            LEFT JOIN AppUser u ON r.authorId = u.id
+            LEFT JOIN AppUser u ON r.authorid = u.id
             LEFT JOIN RecipeLike rl ON r.id = rl.recipeId
             WHERE LOWER(r.name) LIKE LOWER(${'%' + query + '%'})
               AND (u.ispublic = true 
@@ -481,7 +481,7 @@ export async function searchRecipes(query: string): Errorable<{ recipes: Recipe[
                        OR (id1 = u.id AND id2 = ${currentUser.id})
                    ))
             GROUP BY r.id, u.username
-            ORDER BY likeCount DESC, r.name ASC
+            ORDER BY likecount DESC, r.name ASC
             LIMIT ${MAX_SEARCH_LIMIT}
         `;
         
@@ -501,8 +501,8 @@ export async function getRecipesByUserId(userId: number): Errorable<{ recipes: R
             const recipes = await sql`
                 SELECT r.*, u.username as authorname, u.profile_picture as authorprofilepicture
                 FROM RecipeWithLikes r
-                JOIN AppUser u ON r.authorId = u.id
-                WHERE r.authorId = ${userId}
+                JOIN AppUser u ON r.authorid = u.id
+                WHERE r.authorid = ${userId}
                 ORDER BY r.createdAt DESC
             ` as Recipe[];
             return { recipes };
@@ -521,8 +521,8 @@ export async function getRecipesByUserId(userId: number): Errorable<{ recipes: R
             const recipes = await sql`
                 SELECT r.*, u.username as authorname, u.profile_picture as authorprofilepicture
                 FROM RecipeWithLikes r
-                JOIN AppUser u ON r.authorId = u.id
-                WHERE r.authorId = ${userId}
+                JOIN AppUser u ON r.authorid = u.id
+                WHERE r.authorid = ${userId}
                 ORDER BY r.createdAt DESC
             ` as Recipe[];
             return { recipes };
@@ -545,8 +545,8 @@ export async function getRecipesByUserId(userId: number): Errorable<{ recipes: R
             const recipes = await sql`
                 SELECT r.*, u.username as authorname, u.profile_picture as authorprofilepicture
                 FROM RecipeWithLikes r
-                JOIN AppUser u ON r.authorId = u.id
-                WHERE r.authorId = ${userId}
+                JOIN AppUser u ON r.authorid = u.id
+                WHERE r.authorid = ${userId}
                 ORDER BY r.createdAt DESC
             ` as Recipe[];
             return { recipes };
@@ -571,9 +571,9 @@ export async function getRecipesByIds(ids: number[]): Errorable<{ recipes: Recip
                     r.*,
                     u.username as authorname,
                     u.profile_picture,
-                    u.id as authorId
+                    u.id as authorid
                 FROM RecipeWithLikes r
-                JOIN AppUser u ON r.authorId = u.id
+                JOIN AppUser u ON r.authorid = u.id
                 WHERE r.id = ANY(${ids}) AND u.ispublic = true
             ` as Recipe[];
             return { recipes };
@@ -585,9 +585,9 @@ export async function getRecipesByIds(ids: number[]): Errorable<{ recipes: Recip
                 r.*,
                 u.username as authorname,
                 u.profile_picture,
-                u.id as authorId
+                u.id as authorid
             FROM RecipeWithLikes r
-            JOIN AppUser u ON r.authorId = u.id
+            JOIN AppUser u ON r.authorid = u.id
             WHERE r.id = ANY(${ids})
               AND (u.ispublic = true 
                    OR u.id = ${currentUser.id}
@@ -612,7 +612,7 @@ export interface Recipe {
   instructions: string;
   createdAt: Date;
   likecount: number;
-  authorId: number;
+  authorid: number;
   authorname: string;
   difficulty: 'Easy' | 'Medium' | 'Hard' | null | string;
   profile_picture?: string | null;

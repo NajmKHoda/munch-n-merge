@@ -10,9 +10,9 @@ const MAX_FEED_LIMIT = 100;
 const MAX_FEED_DEPTH = 5;
 
 export interface TrendingItem extends Recipe {
-    likeCount: number;
-    authorName: string;
-    authorId: number;
+    likecount: number;
+    authorname: string;
+    authorid: number;
     authorProfilePicture: string | null;
 }
 
@@ -27,8 +27,8 @@ export async function getTrendingRecipes(
         return await sql`
             SELECT 
                 r.*, 
-                u.username AS "authorName",
-                u.id::int AS "authorId",
+                u.username AS "authorname",
+                u.id::int AS "authorid",
                 u.profile_picture AS "authorProfilePicture",
                 base.difficulty
             FROM RecipeWithLikes r
@@ -44,8 +44,8 @@ export async function getTrendingRecipes(
     return await sql`
         SELECT 
             r.*, 
-            u.username AS "authorName",
-            u.id::int AS "authorId",
+            u.username AS "authorname",
+            u.id::int AS "authorid",
             u.profile_picture AS "authorProfilePicture",
             base.difficulty
         FROM RecipeWithLikes r
@@ -122,13 +122,13 @@ export async function getFriendsFeed(
                 JOIN Friend f5 ON f4.id2 = f5.id1
                 WHERE f1.id1 = ${user.id} AND f5.id2 != ${user.id} AND ${depth} >= 5
             )
-            SELECT DISTINCT r.id, r.name, r.description, r.ingredients, r.createdAt, r.likeCount, r.authorId, u.username AS authorName, u.profile_picture AS authorProfilePicture, base.difficulty, u.id::int AS authorId
+            SELECT DISTINCT r.id, r.name, r.description, r.ingredients, r.createdAt, r.likecount, r.authorid, u.username AS authorname, u.profile_picture AS authorProfilePicture, base.difficulty, u.id::int AS authorid
             FROM RecipeWithLikes r
-            JOIN UserNetwork n ON r.authorId = n.userId AND n.userId != ${user.id}
-            JOIN AppUser u ON u.id = r.authorId
+            JOIN UserNetwork n ON r.authorid = n.userId AND n.userId != ${user.id}
+            JOIN AppUser u ON u.id = r.authorid
             JOIN Recipe base ON base.id = r.id
             WHERE r.createdAt > ${afterDate}
-            ORDER BY r.likeCount DESC, r.createdAt DESC
+            ORDER BY r.likecount DESC, r.createdAt DESC
             LIMIT ${limit} OFFSET ${offset}
         ` as Recipe[];
         return { recipes };

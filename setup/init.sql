@@ -43,14 +43,14 @@ CREATE TABLE IF NOT EXISTS FriendRequest (
 
 CREATE TABLE IF NOT EXISTS Recipe (
     id SERIAL PRIMARY KEY,
-    authorId INTEGER,
+    authorid INTEGER,
     name TEXT NOT NULL,
     description TEXT DEFAULT '',
     ingredients JSONB DEFAULT '{}'::JSONB,
     instructions TEXT DEFAULT '',
     createdAt TIMESTAMP NOT NULL DEFAULT NOW(),
     difficulty TEXT,
-    FOREIGN KEY (authorId) REFERENCES AppUser(id)
+    FOREIGN KEY (authorid) REFERENCES AppUser(id)
         ON UPDATE CASCADE
         ON DELETE SET NULL
 );
@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS RecipeLink (
 );
 
 CREATE OR REPLACE VIEW RecipeWithLikes AS (
-    SELECT r.*, COUNT(rl.userId) AS likeCount 
+    SELECT r.*, COUNT(rl.userId) AS likecount 
     FROM Recipe r 
     LEFT JOIN RecipeLike rl ON r.id = rl.recipeId 
     GROUP BY r.id

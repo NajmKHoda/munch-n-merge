@@ -104,7 +104,7 @@ export default function FavoritesPage() {
     if (!recipeToUpdate) return;
     
     // Get current like count as a number
-    const currentLikeCount = Number((recipeToUpdate as any).likecount || 0);
+    const currentlikecount = Number((recipeToUpdate as any).likecount || 0);
     
     if (likes[id]) {
       // Immediately update UI for better user experience
@@ -113,7 +113,7 @@ export default function FavoritesPage() {
         prev.map(recipe => 
           recipe.id === id ? { 
             ...recipe, 
-            likecount: Math.max(0, currentLikeCount - 1)
+            likecount: Math.max(0, currentlikecount - 1)
           } : recipe
         )
       );
@@ -128,7 +128,7 @@ export default function FavoritesPage() {
           prev.map(recipe => 
             recipe.id === id ? { 
               ...recipe, 
-              likecount: currentLikeCount 
+              likecount: currentlikecount 
             } : recipe
           )
         );
@@ -140,7 +140,7 @@ export default function FavoritesPage() {
         prev.map(recipe => 
           recipe.id === id ? { 
             ...recipe, 
-            likecount: currentLikeCount + 1
+            likecount: currentlikecount + 1
           } : recipe
         )
       );
@@ -155,7 +155,7 @@ export default function FavoritesPage() {
           prev.map(recipe => 
             recipe.id === id ? { 
               ...recipe, 
-              likecount: currentLikeCount 
+              likecount: currentlikecount 
             } : recipe
           )
         );

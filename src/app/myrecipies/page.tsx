@@ -32,9 +32,9 @@ export default function RecipesPage() {
                     ingredients: typeof recipe.ingredients === 'string'
                         ? JSON.parse(recipe.ingredients)
                         : recipe.ingredients,
-                    authorId: recipe.authorId,
-                    authorName: recipe.authorname,
-                    likeCount: recipe.likecount ?? 0,
+                    authorid: recipe.authorid,
+                    authorname: recipe.authorname,
+                    likecount: recipe.likecount ?? 0,
                     difficulty: recipe.difficulty ?? null,
                 })));
 
@@ -136,9 +136,9 @@ export default function RecipesPage() {
                             ingredients: typeof newRecipe.recipe.ingredients === 'string'
                                 ? JSON.parse(newRecipe.recipe.ingredients)
                                 : newRecipe.recipe.ingredients,
-                            authorId: newRecipe.recipe.authorId,
-                            authorName: newRecipe.recipe.authorname,
-                            likeCount: newRecipe.recipe.likecount ?? 0,
+                            authorid: newRecipe.recipe.authorid,
+                            authorname: newRecipe.recipe.authorname,
+                            likecount: newRecipe.recipe.likecount ?? 0,
                         };
                         setRecipes(prevRecipes => [...prevRecipes, localRecipe]);
                         resetForm();
@@ -189,9 +189,9 @@ export default function RecipesPage() {
                     ingredients: typeof updatedRecipe.recipe.ingredients === 'string'
                         ? JSON.parse(updatedRecipe.recipe.ingredients)
                         : updatedRecipe.recipe.ingredients,
-                    authorId: updatedRecipe.recipe.authorId,
-                    authorName: updatedRecipe.recipe.authorname,
-                    likeCount: updatedRecipe.recipe.likecount ?? 0,
+                    authorid: updatedRecipe.recipe.authorid,
+                    authorname: updatedRecipe.recipe.authorname,
+                    likecount: updatedRecipe.recipe.likecount ?? 0,
                 };
                 setRecipes(prevRecipes => prevRecipes.map(r => r.id === selectedRecipe.id ? recipe : r));
                 resetForm();
@@ -298,7 +298,7 @@ export default function RecipesPage() {
                                 recipe={recipe}
                                 onEdit={startEdit}
                                 onDelete={handleDeleteRecipe}
-                                likeCount={recipe.likeCount || 0}
+                                likecount={recipe.likecount || 0}
                             />
                         </div>
                     ))}

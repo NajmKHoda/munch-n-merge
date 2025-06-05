@@ -89,7 +89,7 @@ export default function TrendingPage() {
     if (!recipeToUpdate) return;
     
     // Get current like count as a number
-    const currentLikeCount = Number((recipeToUpdate as any).likecount || recipeToUpdate.likeCount || 0);
+    const currentlikecount = Number((recipeToUpdate as any).likecount || recipeToUpdate.likecount || 0);
     
     if (likes[id]) {
       // Immediately update UI for better user experience
@@ -98,8 +98,8 @@ export default function TrendingPage() {
         prev.map(recipe => 
           recipe.id === id ? { 
             ...recipe, 
-            likeCount: Math.max(0, currentLikeCount - 1),
-            likecount: Math.max(0, currentLikeCount - 1) 
+            likecount: Math.max(0, currentlikecount - 1),
+            likecount: Math.max(0, currentlikecount - 1) 
           } : recipe
         )
       );
@@ -114,8 +114,8 @@ export default function TrendingPage() {
           prev.map(recipe => 
             recipe.id === id ? { 
               ...recipe, 
-              likeCount: currentLikeCount,
-              likecount: currentLikeCount 
+              likecount: currentlikecount,
+              likecount: currentlikecount 
             } : recipe
           )
         );
@@ -127,8 +127,8 @@ export default function TrendingPage() {
         prev.map(recipe => 
           recipe.id === id ? { 
             ...recipe, 
-            likeCount: currentLikeCount + 1,
-            likecount: currentLikeCount + 1 
+            likecount: currentlikecount + 1,
+            likecount: currentlikecount + 1 
           } : recipe
         )
       );
@@ -143,8 +143,8 @@ export default function TrendingPage() {
           prev.map(recipe => 
             recipe.id === id ? { 
               ...recipe, 
-              likeCount: currentLikeCount,
-              likecount: currentLikeCount 
+              likecount: currentlikecount,
+              likecount: currentlikecount 
             } : recipe
           )
         );
@@ -213,7 +213,7 @@ return (
                 <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold">
                   <img
                     src={recipe.authorProfilePicture || '/images/IconForWebsite.png'}
-                    alt={recipe.authorName + ' profile picture'}
+                    alt={recipe.authorname + ' profile picture'}
                     className="w-10 h-10 rounded-full border border-neutral-200 bg-white"
                   />
                 </div>
@@ -222,7 +222,7 @@ return (
                     href={`/user/${recipe.authorid}`}
                     className="font-semibold text-indigo-700 hover:underline"
                   >
-                    Chef #{recipe.authorName}
+                    Chef #{recipe.authorname}
                   </Link>
                 </div>
               </div>
@@ -248,7 +248,7 @@ return (
                     />
                   </svg>
                   <span className="text-sm w-5 text-center">
-                    {Number((recipe as any).likecount || recipe.likeCount || 0)}
+                    {Number((recipe as any).likecount || recipe.likecount || 0)}
                   </span>
                 </button>
 

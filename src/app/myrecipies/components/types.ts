@@ -4,9 +4,9 @@ export interface Recipe {
     description: string;
     instructions: string;
     ingredients: Record<string, string>;
-    authorId: number | string;
-    authorName: string;
-    likeCount: number;
+    authorid: number | string;
+    authorname: string;
+    likecount: number;
 }
 
 export interface FormData {

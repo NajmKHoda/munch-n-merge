@@ -6,10 +6,10 @@ interface RecipeCardProps {
     recipe: Recipe;
     onEdit: (recipe: Recipe) => void;
     onDelete: (id: number) => void;
-    likeCount: number;
+    likecount: number;
 }
 
-export default function RecipeCard({ recipe, onEdit, onDelete, likeCount }: RecipeCardProps) {
+export default function RecipeCard({ recipe, onEdit, onDelete, likecount }: RecipeCardProps) {
     const [showIngredients, setShowIngredients] = useState(false);
     const [showInstructions, setShowInstructions] = useState(false);
 
